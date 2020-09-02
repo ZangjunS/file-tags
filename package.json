@@ -1,0 +1,21 @@
+{
+  "name": "file-tags",
+  "version": "1.0.0",
+  "description": "A file tag manage application",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "repository": "https://github.com/ZangjunS/file-tags.git",
+  "keywords": [
+    "Electron"
+  ],
+  "author": "zangs",
+  "license": "GPL",
+  "devDependencies": {},
+  "dependencies": {
+    "jquery": "^3.5.1",
+    "jsdom": "^16.4.0",
+    "node-cmd": "^3.0.0"
+  }
+}
