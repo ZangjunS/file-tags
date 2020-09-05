@@ -7,7 +7,7 @@
 运行前需要开[everything](www.voidtools.com)服务
 
 ## 预览
-![界面](pv.png)
+![界面](http://tiebapic.baidu.com/forum/pic/item/7480c12a6059252d92bf1a5e239b033b5ab5b9bd.jpg)
 
 ## License
 
