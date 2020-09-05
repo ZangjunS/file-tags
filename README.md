@@ -6,6 +6,9 @@
 
 运行前需要开[everything](www.voidtools.com)服务
 
+## 预览
+![界面](pv.png)
+
 ## License
 
 [GNU General Public License v3.0](LICENSE)
