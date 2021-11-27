@@ -1,157 +1,226 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-    <meta
-      http-equiv="X-Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'  'unsafe-inline'"
-    />
-    <!-- default-src 'self' style-src 'self' 'unsafe-inline'; -->
-    <link rel="stylesheet" href="./layui/css/layui.css" />
-    <title>Hello fileTags</title>
-  </head>
-  <body>
-    <div style="height: 60px"></div>
-    <!-- You can also require other files to run in this process -->
 
-    <div id="searchWin" class="layui-form" action="">
-      <div class="layui-form-item">
-        <div class="layui-input-inline" style="width: 74vw">
-          <input id="etsearcher" placeholder="请输入标签" class="layui-input" />
-        </div>
+<head>
+  <meta charset="UTF-8" />
+  <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+  <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'  'unsafe-inline'" />
+  <!-- default-src 'self' style-src 'self' 'unsafe-inline'; -->
+  <link rel="stylesheet" href="./layui/css/layui.css" />
+  <title>Hello fileTags</title>
+</head>
+
+<body>
+  <div style="height: 60px"></div>
+  <!-- You can also require other files to run in this process -->
+
+  <div id="searchWin" class="layui-form" action="">
+    <div class="layui-input-inline">
+      <input id="etsearcher" placeholder="请输入标签" class="layui-input" />
+    </div>
+    <div id="searchSettingWin" class="layui-form-item">
+      <div class="layui-inline">
         <i id="etsearcher-btn" class="layui-icon layui-icon-search"></i>
-        <div id="searchSettingWin" class="layui-inline">
-          <i id="settingFolder" class="layui-icon layui-icon-set-fill"></i>
+      </div>
+      <div class="layui-inline">
+        <i id="settingFolder" class="layui-icon layui-icon-set-fill"></i>
 
-          <div id="searchSettings" style="display: none">
-            <div class="layui-input-inline">
-              <div style="color: #200404">路径视为标签</div>
-              <input id="pathAsLabel" type="checkbox" lay-skin="switch" />
-            </div>
-            <div class="layui-input-inline">
-              <div style="color: #200404">不包含子目录</div>
-              <input id="noSub" type="checkbox" lay-skin="switch" />
-            </div>
+        <div id="searchSettings" style="display: none">
+          <div class="layui-input-inline">
+            <div style="color: #200404">路径下搜索</div>
+            <input id="pathAsLabel" type="checkbox" checked="checked" lay-skin="switch" />
+          </div>
+          <div class="layui-input-inline">
+            <div style="color: #200404">不包含子目录</div>
+            <input id="noSub" type="checkbox" checked="checked" lay-skin="switch" />
           </div>
         </div>
+      </div>
 
-        <div id="fileLibraryDirsWin" class="layui-inline">
-          <i id="fileLibraryFolder" class="layui-icon layui-icon-star-fill"
-            >库</i
-          >
+      <div id="fileLibraryDirsWin" class="layui-inline">
+        <i id="fileLibraryFolder" class="layui-icon layui-icon-star-fill">库</i>
+        <div id="fileLibraryActWin" style="display: none">
+          <div id="fileLibraryDirsDiv" class=""></div>
+          <button id="addFileLibrary" type="button" class="layui-btn layui-btn-primary layui-btn-sm">
+            <i class="layui-icon">&#xe654;</i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="fileActWin">
+    <div id="searchResWin" style="width: 74vw">
+      <div id="searchRes" lay-filter="searchRes"></div>
+    </div>
+    <!-- <div class="layui-bg-cyan" style="width: 1vw; height: 90vh;"></div> -->
+    <div id="tagActWin" style="width: 25vw">
+      <div class="layui-form">
+        <label class="layui-form-label">标签前置</label>
+        <div class="layui-input-block">
+          <input id="tagToHeadSwitch" type="checkbox" checked="checked" name="switch" lay-filter="tagToHeadSwitch"
+            lay-skin="switch" />
+        </div>
+        <input id="newTagsIpt" placeholder="输入标签,以空格分隔" class="layui-input" />
+        <div id="addTagBtn" class="layui-btn">添加</div>
+      </div>
+      <div class="layui-collapse">
 
-          <div id="fileLibraryActWin" style="display: none">
-            <div id="fileLibraryDirsDiv" class=""></div>
-            <button
-              id="addFileLibrary"
-              type="button"
-              class="layui-btn layui-btn-primary layui-btn-sm"
-            >
-              <i class="layui-icon">&#xe654;</i>
-            </button>
+        <div class="layui-colla-item">
+          <h2 class="layui-colla-title">标签</h2>
+          <div id="fileTags" class="layui-colla-content layui-show">
+          </div>
+        </div>
+        <div class="layui-colla-item">
+          <h2 class="layui-colla-title">固定标签</h2>
+          <div id="staticTags" class="layui-colla-content layui-show">
+          </div>
+        </div>
+        <div class="layui-colla-item">
+          <!-- <hr class="layui-bg-green" /> -->
+          <h2 class="layui-colla-title">
+            历史标签
+          </h2>
+          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">*</div>
+          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">A</div>
+          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">B</div>
+          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">C</div>
+          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">D</div>
+          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">E</div>
+          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">F</div>
+          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">G</div>
+          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">H</div>
+          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">I</div>
+          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">J</div>
+          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">K</div>
+          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">L</div>
+          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">M</div>
+          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">N</div>
+          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">O</div>
+          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">P</div>
+          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">Q</div>
+          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">R</div>
+          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">S</div>
+          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">T</div>
+          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">U</div>
+          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">V</div>
+          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">W</div>
+          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">X</div>
+          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">Y</div>
+          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">Z</div>
+          <div id="hisTags" class="layui-colla-content layui-show">
+            内容区域
           </div>
         </div>
       </div>
     </div>
-    <div id="fileActWin">
-      <div id="searchResWin" style="width: 74vw">
-        <div id="searchRes" lay-filter="searchRes"></div>
-      </div>
-      <!-- <div class="layui-bg-cyan" style="width: 1vw; height: 90vh;"></div> -->
-      <div id="tagActWin" style="width: 25vw">
-        <div class="layui-form">
-          <label class="layui-form-label">标签前置</label>
-          <div class="layui-input-block">
-            <input
-              id="tagToHeadSwitch"
-              type="checkbox"
-              name="switch"
-              lay-filter="tagToHeadSwitch"
-              lay-skin="switch"
-            />
-          </div>
-          <input
-            id="newTagsIpt"
-            placeholder="输入标签,以空格分隔"
-            class="layui-input"
-          />
-          <div id="addTagBtn" class="layui-btn">添加</div>
-        </div>
-        <div class="layui-collapse">
-          <div class="layui-colla-item">
-            <hr class="layui-bg-green" />
-            <h2 class="layui-colla-title">历史标签</h2>
-            <div id="hisTags" class="layui-colla-content layui-show">
-              内容区域
-            </div>
-          </div>
-          <div class="layui-colla-item">
-            <h2 class="layui-colla-title">固定标签</h2>
-            <div id="staticTags" class="layui-colla-content layui-show"></div>
-          </div>
-          <div class="layui-colla-item">
-            <h2 class="layui-colla-title">标签组</h2>
-            <div id="tagGroups" class="layui-colla-content layui-show">
-              内容区域
-            </div>
-          </div>
-        </div>
-        <div id="fileTags"></div>
-      </div>
-    </div>
-  </body>
-  <script src="./tools.js"></script>
-  <script src="./layui/layui.all.js"></script>
-  <script src="./rendererLinkMain.js"></script>
+  </div>
+</body>
+<script src="./tools.js"></script>
+<script src="./layui/layui.all.js"></script>
+<script src="./rendererLinkMain.js"></script>
 
-  <script src="./renderer.js"></script>
-  <style>
-    #searchWin {
-      height: 60px;
-      width: 100vw;
-      background-color: rgb(15, 100, 100);
-      position: fixed;
-      top: 0px;
-      float: inherit;
-      z-index: 1008611;
-    }
-    #fileActWin {
-      display: flex;
-      justify-content: flex-start;
-    }
-    #searchResWin {
-      height: calc(100vh - 60px);
+<script src="./renderer.js"></script>
+<style>
+  .layui-btn+.layui-btn {
+    margin-left: 0px;
+  }
 
-      overflow: scroll;
-    }
+  .fileLibraryDir {
+    border-bottom: solid #08304e;
+  }
 
-    .layui-icon {
-      font-size: 20px;
-      color: #08304e;
-    }
-    /*
+  #fileLibraryDirsDiv {
+    height: 220px;
+    overflow-y: scroll;
+  }
+
+  .fileLibraryDir {
+    font-size: 20px;
+  }
+
+  #searchSettingWin {
+    display: flex;
+    flex-direction: row;
+    align-content: center;
+    justify-content: space-around;
+    align-items: center;
+    flex-wrap: nowrap;
+
+  }
+
+  .layui-form-item {
+
+    margin: 0;
+  }
+
+  #etsearcher {
+    width: 73vw;
+    margin: 0.5vw;
+  }
+
+  .layui-btn-sm {
+    margin: 2px;
+  }
+
+  #tagGroups {
+    height: 50px;
+  }
+
+  #searchWin {
+    height: 60px;
+    width: 100vw;
+    background-color: rgb(15, 100, 100);
+    position: fixed;
+    top: 0px;
+    float: inherit;
+    z-index: 1008611;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-content: center;
+    flex-wrap: nowrap;
+    align-items: center;
+
+  }
+
+  #fileActWin {
+    display: flex;
+    justify-content: flex-start;
+  }
+
+  #searchResWin {
+    height: calc(100vh - 60px);
+    overflow: scroll;
+  }
+
+  .layui-inline .layui-icon {
+    font-size: 30px;
+    color: #08304e;
+  }
+
+  /*
  *  STYLE 7
  */
-    *::-webkit-scrollbar-track {
-      -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
-      background-color: #f5f5f5;
-      border-radius: 10px;
-    }
-    *::-webkit-scrollbar {
-      width: 10px;
-      background-color: #f5f5f5;
-    }
-    *::-webkit-scrollbar-thumb {
-      border-radius: 10px;
-      background-image: -webkit-gradient(
-        linear,
+  *::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+    background-color: #f5f5f5;
+    border-radius: 10px;
+  }
+
+  *::-webkit-scrollbar {
+    width: 10px;
+    background-color: #f5f5f5;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    background-image: -webkit-gradient(linear,
         left bottom,
         left top,
         color-stop(0.44, rgb(144, 149, 212)),
         color-stop(0.72, rgb(73, 125, 189)),
-        color-stop(0.86, rgb(28, 58, 148))
-      );
-    }
-  </style>
+        color-stop(0.86, rgb(28, 58, 148)));
+  }
+</style>
+
 </html>

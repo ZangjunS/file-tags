@@ -4,16 +4,37 @@
 // `nodeIntegration` is turned off. Use `preload.js` to
 // selectively enable features needed in the rendering
 // process.
+
+//调界面时关闭
+
 const fs = require("fs");
 const path = require("path");
-const { shell } = require("electron");
-const { ipcRenderer } = require("electron");
-const { dialog } = require("electron");
+const {
+  shell
+} = require("electron");
+const {
+  ipcRenderer
+} = require("electron");
+const {
+  dialog
+} = require("electron");
 const execSync = require("child_process").execSync;
 var cmd = require("node-cmd");
+/**/
+
+
+// const edge = require('edge');
+// var invoke1 = edge.func({
+//   assemblyFile: path.join("Z:\\play\\qq\\data", "Microsoft.Office.Interop.PowerPoint.dll"),
+//   typeName: "Some.Startup",
+//   methodName: "Invoke"
+// })
+
+
+
 var $;
 layui.use(["layer", "form", "jquery", "table", "element"], async function () {
-  window.nodeRequire = require;
+  window.nodeRequire = require; //调界面时关闭
   delete window.require;
   var layer = layui.layer;
   var form = layui.form;
@@ -21,7 +42,7 @@ layui.use(["layer", "form", "jquery", "table", "element"], async function () {
   $ = layui.$;
   var table = layui.table;
   var tagTools = {
-    tagToHead: false,
+    tagToHead: true,
     strNotEmpty(value) {
       //正则表达式用于判斷字符串是否全部由空格或换行符组成
       var reg = /^\s*$/;
@@ -72,7 +93,8 @@ layui.use(["layer", "form", "jquery", "table", "element"], async function () {
         var oTags = fileName.substring(tagStart, tagEnd + 1);
         fileNameNotag = fileNameNotag.replace(oTags, "");
       }
-      var tagStr = "[" + [...newTags].filter(this.strNotEmpty).join(" ") + "]";
+
+      var tagStr = "[" + [...newTags].filter(this.strNotEmpty).sort().join(" ") + "]";
       console.log(fileNameNotag);
       if (this.tagToHead == true) {
         return tagStr + fileNameNotag + fileSuffix;
@@ -112,7 +134,7 @@ layui.use(["layer", "form", "jquery", "table", "element"], async function () {
     },
   };
   var searchTools = {
-    search(sParam) {
+    searchParamPaser(sParam) {
       var cmds = `CHCP 65001>nul && "es.exe" `;
       if ($("#pathAsLabel")[0].checked) {
         sParam += " -p";
@@ -120,26 +142,31 @@ layui.use(["layer", "form", "jquery", "table", "element"], async function () {
       if ($("#noSub")[0].checked) {
         sParam = " -parent " + sParam;
       }
-      var cmdRes = new TextDecoder("utf-8").decode(execSync(cmds + sParam));
+      return cmds + sParam;
+    },
+    search(sParam) {
+
+      var cmdRes = new TextDecoder("utf-8").decode(execSync(searchTools.searchParamPaser(sParam)));
       var res = cmdRes.split(/[\r\n]+/);
       return new Promise((resolve) => {
         resolve(res.filter(tagTools.strNotEmpty));
       });
-      // return new Promise((resolve) => {
-      //   cmd.get(cmds, (err, data) => {
-      //     var res = data.split(/[\r\n]+/).filter(tagTools.strNotEmpty);
-      //     resolve(res);
-      //   });
-      // });
     },
     createTable(data) {
       //执行渲染
       resTable = table.render({
         elem: "#searchRes", //指定原始表格元素选择器（推荐id选择器）
         cols: [
-          [
-            { field: "check", type: "radio", width: "5%" },
-            { field: "LAY_TABLE_INDEX", title: "序号", width: "10%" },
+          [{
+              field: "check",
+              type: "radio",
+              width: "5%"
+            },
+            {
+              field: "LAY_TABLE_INDEX",
+              title: "序号",
+              width: "10%"
+            },
             {
               field: "fileName",
               title: "文件名",
@@ -168,7 +195,9 @@ layui.use(["layer", "form", "jquery", "table", "element"], async function () {
     $("#fileLibraryDirsDiv").html("");
     db.fileLibraryDirs.list.forEach((path) => {
       $("#fileLibraryDirsDiv").append(
-        $(`<div class=" fileLibraryDir">${path}</div>`)
+        $(`<span class=" fileLibraryDir">${path}</span>
+        <span><i class="layui-icon layui-icon-close-fill libdel" dir="${path}"></i>
+        </span><hr>`)
       );
     });
   }
@@ -206,7 +235,7 @@ layui.use(["layer", "form", "jquery", "table", "element"], async function () {
       type: 1,
       offset: "5px",
       title: "仓库",
-      area: ["300px", "200px"],
+      area: ["500px", "300px"],
       shade: 0,
       shadeClose: false,
       content: $("#fileLibraryActWin"),
@@ -223,7 +252,14 @@ layui.use(["layer", "form", "jquery", "table", "element"], async function () {
     });
   });
   $("body").on("click", ".fileLibraryDir", function (a) {
-    $("#etsearcher").val($(this).html());
+    $("#etsearcher").val('"' + $(this).html() + '"');
+  });
+  $("body").on("click", ".libdel", function (a) {
+    var val = $(this).attr("dir");
+    db.fileLibraryDirs.list = db.fileLibraryDirs.list.filter((dir) => {
+      return dir != val;
+    })
+    createLibraryDivs();
   });
   // searchResWin
   //监听行单击事件
@@ -238,6 +274,7 @@ layui.use(["layer", "form", "jquery", "table", "element"], async function () {
   });
   table.on("radio(searchRes)", function (obj) {
     db.currentEditTbNode = obj;
+    createTagDivs(obj);
     createTagDivs(obj);
   });
   // 点击文件名打开文件
@@ -282,10 +319,7 @@ layui.use(["layer", "form", "jquery", "table", "element"], async function () {
   function createHisTags(tags) {
     var tagDivs = tags.map((tag) => {
       return $(
-        ` 
-        <div class="layui-badge layui-bg-green hisTag">${tag}</div> 
-        <span class="layui-badge-dot layui-bg-gray"></span>
-         `
+        `<div class="layui-btn layui-btn-sm hisTag">${tag}</div>`
       );
     });
     $("#hisTags").html("");
@@ -299,7 +333,7 @@ layui.use(["layer", "form", "jquery", "table", "element"], async function () {
     newTags.forEach((t) => {
       db.resentAddTag.put(t);
     });
-    createHisTags(db.resentAddTag.list);
+    createHisTags(db.resentAddTag.getTop("*"));
   });
   form.on("switch(tagToHeadSwitch)", (obj) => {
     tagTools.tagToHead = obj.elem.checked;
@@ -309,12 +343,17 @@ layui.use(["layer", "form", "jquery", "table", "element"], async function () {
     var addTag = $(this).html();
     tableNodeUpdate("addTagsToFile", [addTag]);
     db.resentAddTag.put(addTag);
-    createHisTags(db.resentAddTag.list);
+    createHisTags(db.resentAddTag.getTop("*"));
   });
   $("body").on("click", ".tagDeler", function (e) {
     var delTag = $(this).attr("delTag");
     tableNodeUpdate("delTagsToFile", [delTag]);
   });
+
+  $("body").on("click", ".wordHead", function (e) {
+    console.log($(this).html());
+    createHisTags(db.resentAddTag.getTop($(this).html()));
+  })
   // 界面初始化
 
   $("#etsearcher").val(cmdArgs[1]);
@@ -324,12 +363,11 @@ layui.use(["layer", "form", "jquery", "table", "element"], async function () {
       .dbLoad()
       .then((data) => {
         console.log("done");
-        createHisTags(db.resentAddTag.list);
+        createHisTags(db.resentAddTag.getTop("*"));
         db.staticTags.forEach((ele) => {
           $("#staticTags").append(
             $(
-              `<div class="layui-badge layui-bg-green hisTag">${ele}</div> 
-      <span class="layui-badge-dot layui-bg-gray"></span>`
+              `<div class="layui-btn layui-btn-sm hisTag">${ele}</div>`
             )
           );
         });
@@ -340,3 +378,6 @@ layui.use(["layer", "form", "jquery", "table", "element"], async function () {
       });
   }, 500);
 });
+
+const spawn = require('child_process').spawn;
+var childProcess = spawn('./dll/MQConsole.exe', ['参数1',1234]);
