@@ -6,196 +6,361 @@
   <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
   <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'  'unsafe-inline'" />
   <!-- default-src 'self' style-src 'self' 'unsafe-inline'; -->
-  <link rel="stylesheet" href="./layui/css/layui.css" />
+
   <title>Hello fileTags</title>
+  <link rel="stylesheet" href="./element/index.css">
+  <link rel="stylesheet" href="./renderer/js/video.js/dist/video-js.css">
+  <script src="./electron-vue.js"></script>
+  <script src="./element/index.js"></script>
+  <script src="./tools.js"></script>
+  <script src="./rendererLinkMain.js"></script>
+  <script src="./vue-renderer.js"></script>
 </head>
 
 <body>
-  <div style="height: 60px"></div>
-  <!-- You can also require other files to run in this process -->
-
-  <div id="searchWin" class="layui-form" action="">
-    <div class="layui-input-inline">
-      <input id="etsearcher" placeholder="请输入标签" class="layui-input" />
-    </div>
-    <div id="searchSettingWin" class="layui-form-item">
-      <div class="layui-inline">
-        <i id="etsearcher-btn" class="layui-icon layui-icon-search"></i>
-      </div>
-      <div class="layui-inline">
-        <i id="settingFolder" class="layui-icon layui-icon-set-fill"></i>
-
-        <div id="searchSettings" style="display: none">
-          <div class="layui-input-inline">
-            <div style="color: #200404">路径下搜索</div>
-            <input id="pathAsLabel" type="checkbox" checked="checked" lay-skin="switch" />
-          </div>
-          <div class="layui-input-inline">
-            <div style="color: #200404">不包含子目录</div>
-            <input id="noSub" type="checkbox" checked="checked" lay-skin="switch" />
-          </div>
+  <div id="app">
+    <div id="searchWin">
+      <el-input v-model="search.val" size="large" clearable placeholder="请输入内容" class="leftWin">
+        <el-button ref="searchBtn" slot="append" icon="el-icon-search" @click="doSearch"></el-button>
+        <!-- <i slot="suffix" class="el-input__icon el-icon-search"></i> -->
+      </el-input>
+      <div class="rightWin">
+        <div style="margin-left: 10px;margin-right: 10px;">
+          <el-switch v-model="search.withPath" active-text="路径下搜索" style="display: block;"></el-switch>
+          <el-switch v-model="search.withSubPath" active-text="包含子目录" style="display: block;"></el-switch>
         </div>
-      </div>
-
-      <div id="fileLibraryDirsWin" class="layui-inline">
-        <i id="fileLibraryFolder" class="layui-icon layui-icon-star-fill">库</i>
-        <div id="fileLibraryActWin" style="display: none">
-          <div id="fileLibraryDirsDiv" class=""></div>
-          <button id="addFileLibrary" type="button" class="layui-btn layui-btn-primary layui-btn-sm">
-            <i class="layui-icon">&#xe654;</i>
-          </button>
-        </div>
+        <span>
+          <el-popover placement="bottom" title="收藏路径" trigger="click">
+            <div v-for="dir in this.storeData.archivePath" style="font-size: 20px;">
+              <i @click="archivePathDel(dir)" class="el-icon-remove"></i>
+              <div @click='search.val=`"${dir}"`;$refs.searchBtn.$el.click()'
+                style="display: inline-block; width: 100%; ">
+                {{dir}}
+              </div>
+              <el-divider></el-divider>
+            </div>
+            <el-button @click="archivePathAdd()" type="success" icon="el-icon-plus" circle>
+            </el-button>
+            <el-button slot="reference">收藏路径</el-button>
+          </el-popover>
+        </span>
       </div>
     </div>
-  </div>
-  <div id="fileActWin">
-    <div id="searchResWin" style="width: 74vw">
-      <div id="searchRes" lay-filter="searchRes"></div>
-    </div>
-    <!-- <div class="layui-bg-cyan" style="width: 1vw; height: 90vh;"></div> -->
-    <div id="tagActWin" style="width: 25vw">
-      <div class="layui-form">
-        <label class="layui-form-label">标签前置</label>
-        <div class="layui-input-block">
-          <input id="tagToHeadSwitch" type="checkbox" checked="checked" name="switch" lay-filter="tagToHeadSwitch"
-            lay-skin="switch" />
+    <div id="contentWin">
+      <div id="fileShowWin" class="leftWin">
+        <div id="fileViewWin" v-if="file.openPreview" class="borderd" v-for="(pfilePath) of 1">
+          {{void (pfilePath=file.nowSelect.filePath )}}
+          <div v-if="pfilePath!=null" v-for="(pfileType) of 1">
+            {{void (pfileType=file.nowSelect.preivewType )}}
+            <div v-if="pfileType =='img'">
+              <el-image :src="pfilePath" :fit="'contain'" :preview-src-list="[pfilePath]" class="previewer">
+              </el-image>
+            </div>
+            <div v-if="pfileType =='vid'">
+              <div id="video-container" style="background-color: black;" class="previewer">
+                <video id="vidWin" class="previewer">
+                  <source src="127.0.0.1">
+                </video>
+              </div>
+            </div>
+          </div>
         </div>
-        <input id="newTagsIpt" placeholder="输入标签,以空格分隔" class="layui-input" />
-        <div id="addTagBtn" class="layui-btn">添加</div>
+        <!-- row-click -->
+        <div id="fileListWin">
+          <el-table ref="fileListTable" :data="file.all.slice((page.now-1)*page.size,page.now*page.size)"
+            highlight-current-row border @current-change="onSelectFile" :row-class-name="'list-row'"
+            style="width: 100%">
+            <el-table-column type="index" width="50">
+            </el-table-column>
+            <el-table-column property="fileName" label="文件名" min-width="40vw" sortable>
+              <template slot-scope="scope">
+                <span @click="openFile(scope.row.filePath)">
+                  {{scope.row.fileName }}
+                </span>
+              </template>
+            </el-table-column>
+            <el-table-column property="filePath" show-overflow-tooltip label="路径" min-width="20vw">
+            </el-table-column>
+            <el-table-column min-width="10vw">
+              <template slot="header" slot-scope="scope"> 操作 </template>
+              <template slot-scope="scope">
+                <el-button size="small" @click="showItemInFolder(scope.$index, scope.row)"
+                  icon=" el-icon-folder-opened">
+                </el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+        <el-pagination @current-change="handleCurrentChange" :current-page="page.now" :page-sizes="[500]"
+          :page-size="page.size" layout="total, sizes, prev, pager, next, jumper" :total="file.all.length">
+        </el-pagination>
       </div>
-      <div class="layui-collapse">
+      <div id="fileActionWin" class="rightWin">
+        <div class="flexRowCenter marginTopButtom">
+          <el-switch v-model="file.tagOnHead" active-text="标签前置"></el-switch>
+          <el-switch v-model="file.openPreview" active-text="文件预览"></el-switch>
+        </div>
+        <div id="tagWin">
+          <el-input v-model="file.tagInput" size="large" clearable placeholder="输入标签 空格分隔">
+            <el-button slot="append" icon="el-icon-plus" @click="fileTagAdd(file.tagInput)"></el-button>
+          </el-input>
+          <el-collapse v-model="tagCfg.activeNames" @change="">
+            <el-collapse-item title="文件标签" name="1">
+              <div class="tagGroup">
+                <div v-if="nowFileTags.length==0">
+                </div>
+                <el-tag v-for="tag in nowFileTags" :disable-transitions="true" size="mini" closable
+                  @close="fileTagDel(tag)" type="success">
+                  {{tag}}
+                </el-tag>
+              </div>
 
-        <div class="layui-colla-item">
-          <h2 class="layui-colla-title">标签</h2>
-          <div id="fileTags" class="layui-colla-content layui-show">
-          </div>
-        </div>
-        <div class="layui-colla-item">
-          <h2 class="layui-colla-title">固定标签</h2>
-          <div id="staticTags" class="layui-colla-content layui-show">
-          </div>
-        </div>
-        <div class="layui-colla-item">
-          <!-- <hr class="layui-bg-green" /> -->
-          <h2 class="layui-colla-title">
-            历史标签
-          </h2>
-          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">*</div>
-          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">A</div>
-          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">B</div>
-          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">C</div>
-          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">D</div>
-          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">E</div>
-          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">F</div>
-          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">G</div>
-          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">H</div>
-          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">I</div>
-          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">J</div>
-          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">K</div>
-          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">L</div>
-          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">M</div>
-          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">N</div>
-          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">O</div>
-          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">P</div>
-          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">Q</div>
-          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">R</div>
-          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">S</div>
-          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">T</div>
-          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">U</div>
-          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">V</div>
-          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">W</div>
-          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">X</div>
-          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">Y</div>
-          <div class="layui-btn-sm layui-btn layui-btn-radius layui-btn-primary wordHead">Z</div>
-          <div id="hisTags" class="layui-colla-content layui-show">
-            内容区域
-          </div>
+            </el-collapse-item>
+            <el-collapse-item title="固定标签" name="2">
+              <el-tag v-for="tag in storeData.staticTags" @click="fileTagAdd(tag)" type="success">{{tag}}</el-tag>
+            </el-collapse-item>
+            <el-collapse-item name="3">
+              <template slot="title">
+                历史标签<i class="el-icon-delete-solid"></i>
+              </template>
+              <el-button-group>
+                <el-button v-for="w in  tagCfg.headWord" @click="getHisTagShowList(w)" size="small" round class="word">
+                  {{w}}
+                </el-button>
+              </el-button-group>
+              <div class="tagGroup">
+                <el-tag v-for="tag in storeData.hisTagShowList" @click="fileTagAdd(tag)" type="success">
+                  {{tag}}
+                </el-tag>
+              </div>
+            </el-collapse-item>
+          </el-collapse>
         </div>
       </div>
     </div>
   </div>
 </body>
-<script src="./tools.js"></script>
-<script src="./layui/layui.all.js"></script>
-<script src="./rendererLinkMain.js"></script>
+<script type="module" src="./renderer/js/video.js/dist/video.js"></script>
+<script type="module" src="./renderer/js/StreamPlayTech.js"></script>
+<script>
+  var app = new Vue({
+    el: '#app',
+    data: {
+      path: path,
+      cfg: {
+        port: 8888
+      },
+      search: {
+        withPath: true,
+        withSubPath: false,
+        val: "",
+      },
+      tagCfg: {
+        activeNames: ["1", "2", "3"],
+        headWord: "*ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+      },
 
-<script src="./renderer.js"></script>
+      file: {
+        type: {
+          txt: ".txt.html.bat.md.bas.prg.cmd.log",
+          img: ".bmp.jpg.png.tif.gif.pcx.tga.exif.fpx.svg.psd.cdr.pcd.dxf.ufo.eps.ai.raw.wmf.webp.apng",
+          vid: ".wmv.avi.dat.asf.mpeg.mpg.rm.rmvb.ram.flv.mp4.3gp.mov.divx.dv.vob.mkv.qt.cpk.fli.flc.f4v.m4v.mod.m2t.swf.webm.mts.m2ts.3g2.mpe.ts.div.lavf.dirac"
+        },
+        tagInput: "",
+        tagOnHead: true,
+        openPreview: true,
+        all: [],
+        nowSelect: {
+          fileName: "",
+          tags: []
+        }
+      },
+      page: {
+        now: 1,
+        total: 0,
+        size: 500
+      },
+      message: 'Hello Vue!',
+      storeData: {
+        archivePath: [],
+        hisAddTags: {},
+        hisTagShowList: [],
+        staticTags: ["删除标记", "收藏标记", "1星", "2星", "3星"],
+      }
+    },
+    computed: {
+      nowFileTags() {
+        try {
+          return tagTools.getTags(this.file.nowSelect.fileName);
+        } catch (error) {
+          return []
+        }
+      },
+    },
+    mounted() {
+      this.search.val = cmdArgs[1]
+      console.log((new Date()).valueOf());
+      var his = Object.assign({}, JSON.parse(localStorage.getItem("hisAddTags")));
+      this.storeData.hisAddTags = new CounterSortList(his, this.storeData.staticTags);
+      this.storeData.archivePath = Object.assign([], JSON.parse(localStorage.getItem("archivePath")));
+      this.getHisTagShowList("*");
+      window.onunload = () => {
+        localStorage.setItem("hisAddTags", JSON.stringify(this.storeData.hisAddTags.countMap));
+        localStorage.setItem("archivePath", JSON.stringify(this.storeData.archivePath));
+        localStorage.setItem("des", "des");
+      };
+
+      // loadCfg
+      ipcRenderer.send("cfgLoaded", this.cfg);
+
+      console.log((new Date()).valueOf());
+      // ipcListen
+      ipcRenderer.on("retAdir", (event, path) => {
+        this.storeData.archivePath.push(path);
+      });
+      ipcRenderer.on("backLog", (event, message) => {
+        console.log(message);
+      });
+      ipcRenderer.on('retVideoInfo', (event, message) => {
+        console.log('retVideoInfo:', message)
+        let vid = document.getElementById("vidWin");
+        videojs(vid).dispose();
+
+        if (message.fileType == ".mp4" && message.videoCodecSupport) {
+          vid = createVideoHtml("video-container", "vidWin", message.videoSource);
+          player = videojs(vid);
+          player.play();
+          return
+        }
+        var videoSource = `http://127.0.0.1:${this.cfg.port}?vPath=${encodeURIComponent(message.videoSource)}`;
+        vid = createVideoHtml("video-container", "vidWin", videoSource);
+        player = videojs(vid, {
+          techOrder: ['StreamPlay'],
+          StreamPlay: {
+            src: videoSource,
+            duration: message.duration
+          }
+        }, () => {
+          player.play()
+        });
+      })
+
+    },
+    beforeDestroy() {
+
+    },
+    methods: {
+
+      getHisTagShowList(word) {
+        this.storeData.hisTagShowList = this.storeData.hisAddTags.getTop(word);
+      },
+      searchParamPaser() {
+        var sParam = this.search.val;
+        var cmds = `CHCP 65001>nul && "es.exe" `;
+        if (this.search.withPath) {
+          sParam += " -p";
+        }
+        if (!this.search.withSubPath) {
+          sParam = " -parent " + sParam;
+        }
+        return cmds + sParam;
+      },
+      esSearch(sParam) {
+        var cmdRes = new TextDecoder("utf-8").decode(execSync(sParam));
+        var res = cmdRes.split(/[\r\n]+/);
+        return new Promise((resolve) => {
+          resolve(res.filter(tagTools.strNotEmpty));
+        });
+      },
+      async doSearch() {
+        var fileList = await this.esSearch(this.searchParamPaser());
+        console.log(fileList);
+        this.file.all =
+          fileList.map((filePath, idx) => {
+            return {
+              fileName: path.basename(filePath),
+              filePath: filePath,
+            };
+          });
+        this.page.now = 1;
+      },
+      removeOccupy() {
+        document.getElementById("video-container").innerHTML = "";
+        ipcRenderer.send('removeOccupy', "");
+      },
+      fileTagAdd(tag) {
+        this.removeOccupy();
+        var newTags = tag.split(" ");
+        var newFilePath = tagTools.addTagsToFile(this.file.nowSelect.filePath, newTags, this.tagOnHead);
+        this.file.nowSelect.filePath = newFilePath;
+        this.file.nowSelect.fileName = path.basename(newFilePath);
+
+        newTags.forEach((t) => {
+          this.storeData.hisAddTags.put(t);
+        });
+        this.getHisTagShowList("*");
+      },
+      fileTagDel(tag) {
+        this.removeOccupy();
+        var newFilePath = tagTools.delTagsToFile(this.file.nowSelect.filePath, [tag]);
+        this.file.nowSelect.filePath = newFilePath;
+        this.file.nowSelect.fileName = path.basename(newFilePath);
+      },
+
+      onSelectFile(file) {
+        console.log(file);
+        if (file == null) {
+          file = {}
+        }
+        this.file.nowSelect = file;
+        this.preViewPrepare();
+      },
+      preViewPrepare() {
+        pfileSuffix = path.extname(this.file.nowSelect.filePath).toLowerCase();
+        if (this.file.type.txt.includes(pfileSuffix)) {
+          this.file.nowSelect.preivewType = "txt";
+        }
+        if (this.file.type.img.includes(pfileSuffix)) {
+          this.file.nowSelect.preivewType = "img";
+        }
+        if (this.file.type.vid.includes(pfileSuffix)) {
+          this.file.nowSelect.preivewType = "vid";
+          ipcRenderer.send('getVideoInfo', this.file.nowSelect.filePath);
+        }
+      },
+
+      //当前页改变时触发 跳转其他页,并选中第一行
+      handleCurrentChange(val) {
+        console.log(`当前页: ${val}`);
+        this.page.now = val;
+        // setCurrentRow toggleRowSelection
+        var theFirst = this.file.all[(this.page.now - 1) * this.page.size];
+        this.$refs.fileListTable.setCurrentRow(theFirst);
+        setTimeout(() => {
+          document.getElementsByClassName("current-row")[0].scrollIntoView();
+        }, 100)
+      },
+      openFile(filePath) {
+        shell.openPath(filePath);
+      },
+      showItemInFolder(index, row) {
+        shell.showItemInFolder(row.filePath);
+      },
+      archivePathAdd() {
+        ipcRenderer.send("wantAdir", "hello");
+      },
+      archivePathDel(dir) {
+        this.storeData.archivePath = this.storeData.archivePath.filter((e) => {
+          return e != dir;
+        })
+      }
+    }
+  })
+</script>
 <style>
-  .layui-btn+.layui-btn {
-    margin-left: 0px;
-  }
-
-  .fileLibraryDir {
-    border-bottom: solid #08304e;
-  }
-
-  #fileLibraryDirsDiv {
-    height: 220px;
-    overflow-y: scroll;
-  }
-
-  .fileLibraryDir {
+  #app {
     font-size: 20px;
-  }
-
-  #searchSettingWin {
-    display: flex;
-    flex-direction: row;
-    align-content: center;
-    justify-content: space-around;
-    align-items: center;
-    flex-wrap: nowrap;
-
-  }
-
-  .layui-form-item {
-
-    margin: 0;
-  }
-
-  #etsearcher {
-    width: 73vw;
-    margin: 0.5vw;
-  }
-
-  .layui-btn-sm {
-    margin: 2px;
-  }
-
-  #tagGroups {
-    height: 50px;
-  }
-
-  #searchWin {
-    height: 60px;
-    width: 100vw;
-    background-color: rgb(15, 100, 100);
-    position: fixed;
-    top: 0px;
-    float: inherit;
-    z-index: 1008611;
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-content: center;
-    flex-wrap: nowrap;
-    align-items: center;
-
-  }
-
-  #fileActWin {
-    display: flex;
-    justify-content: flex-start;
-  }
-
-  #searchResWin {
-    height: calc(100vh - 60px);
-    overflow: scroll;
-  }
-
-  .layui-inline .layui-icon {
-    font-size: 30px;
-    color: #08304e;
+    background-color: rgb(255, 250, 244);
   }
 
   /*
@@ -208,7 +373,7 @@
   }
 
   *::-webkit-scrollbar {
-    width: 10px;
+    width: 5px;
     background-color: #f5f5f5;
   }
 
@@ -220,6 +385,100 @@
         color-stop(0.44, rgb(144, 149, 212)),
         color-stop(0.72, rgb(73, 125, 189)),
         color-stop(0.86, rgb(28, 58, 148)));
+  }
+
+  #searchWin {
+    display: flex;
+    flex: 1;
+    height: 50px;
+  }
+
+  #contentWin {
+    display: flex;
+    flex: 1;
+    height: calc(99vh - 60px)
+  }
+
+  #fileShowWin {
+    display: flex;
+    flex-direction: column;
+    /* flex: 1; */
+  }
+
+  #fileViewWin {
+    min-height: 50vh;
+  }
+
+  #fileListWin {
+    /* max-height: 40vh; */
+    overflow-y: scroll;
+  }
+
+  #fileActionWin {
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+  }
+
+  .flexRowCenter {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: row;
+    flex-wrap: nowrap;
+  }
+
+  .marginTopButtom {
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+
+  .leftWin {
+    width: 75vw;
+  }
+
+  .rightWin {
+    display: flex;
+    flex: 1;
+    /* width: 35vw; */
+    border: 3px solid rgb(162, 170, 173);
+    border-radius: 5px;
+  }
+
+  .borderd {
+    border: 3px solid rgb(162, 170, 173);
+    border-radius: 5px;
+  }
+
+  .el-tag {
+    margin-left: 3px;
+  }
+
+  .el-table .list-row {
+    background: #fdfff1;
+  }
+
+  /* .el-table, .el-table__expanded-cell{
+    background-color: rgb(255, 250, 244);
+  } */
+  .el-collapse-item__content {
+    padding-bottom: 0%;
+  }
+
+  .word {
+    /* width: 0px; */
+    text-align: center;
+  }
+
+  .tagGroup {
+    min-height: 5vh;
+    max-height: 20vh;
+    overflow-y: scroll;
+  }
+
+  .previewer {
+    width: 74vw;
+    height: 49vh;
   }
 </style>
 

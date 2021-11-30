@@ -73,14 +73,14 @@ function pySegSort(arr, empty) {
 
   var segs = [];
   var curr;
-  $.each(letters, function (i) {
+  letters.forEach((word, i) => {
     curr = {
-      letter: this,
+      letter: word,
       data: []
     };
-    $.each(arr, function () {
-      if ((zh[i - 1] && zh[i - 1].localeCompare(this, "zh") <= 0) && this.localeCompare(zh[i], "zh") == -1) {
-        curr.data.push(this);
+    arr.forEach((ele) => {
+      if ((zh[i - 1] && zh[i - 1].localeCompare(ele, "zh") <= 0) && ele.localeCompare(zh[i], "zh") == -1) {
+        curr.data.push(ele);
       }
     });
     if (empty || curr.data.length) {
@@ -89,7 +89,7 @@ function pySegSort(arr, empty) {
         return a.localeCompare(b, "zh");
       });
     }
-  });
+  })
   return segs;
 }
 var db = {
