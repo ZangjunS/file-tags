@@ -19,17 +19,18 @@
 
 <body>
   <div id="app">
-    <div id="searchWin">
-      <el-input v-model="search.val" size="large" clearable placeholder="请输入内容" class="leftWin">
-        <el-button ref="searchBtn" slot="append" icon="el-icon-search" @click="doSearch"></el-button>
-        <!-- <i slot="suffix" class="el-input__icon el-icon-search"></i> -->
-      </el-input>
-      <div class="rightWin">
-        <div style="margin-left: 10px;margin-right: 10px;">
-          <el-switch v-model="search.withPath" active-text="路径下搜索" style="display: block;"></el-switch>
-          <el-switch v-model="search.withSubPath" active-text="包含子目录" style="display: block;"></el-switch>
-        </div>
-        <span>
+    <div @click.middle="nextRow()">
+      <div id="searchWin">
+        <el-input v-model="search.val" size="large" clearable placeholder="请输入内容" class="leftWin upWin">
+          <el-button ref="searchBtn" slot="append" icon="el-icon-search" @click="doSearch"></el-button>
+          <!-- <i slot="suffix" class="el-input__icon el-icon-search"></i> -->
+        </el-input>
+        <div class="rightWin upWin">
+          <div style="margin-left: 10px;margin-right: 10px;">
+            <el-switch v-model="search.withPath" active-text="路径下搜索" style="display: block;"></el-switch>
+            <el-switch v-model="search.withSubPath" active-text="包含子目录" style="display: block;"></el-switch>
+          </div>
+
           <el-popover placement="bottom" title="收藏路径" trigger="click">
             <div v-for="dir in this.storeData.archivePath" style="font-size: 20px;">
               <i @click="archivePathDel(dir)" class="el-icon-remove"></i>
@@ -43,98 +44,104 @@
             </el-button>
             <el-button slot="reference">收藏路径</el-button>
           </el-popover>
-        </span>
+
+        </div>
       </div>
-    </div>
-    <div id="contentWin">
-      <div id="fileShowWin" class="leftWin">
-        <div id="fileViewWin" v-if="file.openPreview" class="borderd" v-for="(pfilePath) of 1">
-          {{void (pfilePath=file.nowSelect.filePath )}}
-          <div v-if="pfilePath!=null" v-for="(pfileType) of 1">
-            {{void (pfileType=file.nowSelect.preivewType )}}
-            <div v-if="pfileType =='img'">
-              <el-image :src="pfilePath" :fit="'contain'" :preview-src-list="[pfilePath]" class="previewer">
-              </el-image>
-            </div>
-            <div v-if="pfileType =='vid'">
-              <div id="video-container" style="background-color: black;" class="previewer">
-                <video id="vidWin" class="previewer">
-                  <source src="127.0.0.1">
-                </video>
+      <div id="contentWin">
+        <div id="fileShowWin" class="leftWin">
+          <div id="fileViewWin" v-if="file.openPreview" class="borderd" v-for="(pfilePath) of 1">
+            {{void (pfilePath=file.nowSelect.filePath )}}
+            <div v-if="pfilePath!=null" v-for="(pfileType) of 1">
+              {{void (pfileType=file.nowSelect.preivewType )}}
+              <div v-if="pfileType =='txt'">
+                <iframe :src="pfilePath" class="previewer"></iframe>
+              </div>
+              <div v-if="pfileType =='img'">
+                <el-image :src="pfilePath" :fit="'contain'" :preview-src-list="[pfilePath]" class="previewer">
+                </el-image>
+              </div>
+              <div v-if="pfileType =='vid'">
+                <div id="video-container" style="background-color: black;" class="previewer">
+                  <video id="vidWin" class="previewer">
+                    <source src="127.0.0.1">
+                  </video>
+                </div>
               </div>
             </div>
           </div>
+          <!-- row-click -->
+          <div id="fileListWin">
+            <el-table ref="fileListTable" :data="file.all.slice((page.now-1)*page.size,page.now*page.size)"
+              highlight-current-row border @current-change="onSelectFile" :row-class-name="'list-row'"
+              style="width: 100%">
+              <el-table-column type="index" width="50">
+              </el-table-column>
+              <el-table-column property="fileName" label="文件名" min-width="40vw" sortable>
+                <template slot-scope="scope">
+                  <span @click="openFile(scope.row.filePath)">
+                    {{scope.row.fileName }}
+                  </span>
+                </template>
+              </el-table-column>
+              <el-table-column property="filePath" show-overflow-tooltip label="路径" min-width="20vw">
+              </el-table-column>
+              <el-table-column min-width="10vw">
+                <template slot="header" slot-scope="scope"> 操作 </template>
+                <template slot-scope="scope">
+                  <el-button size="small" @click="showItemInFolder(scope.$index, scope.row)"
+                    icon=" el-icon-folder-opened">
+                  </el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+          <el-pagination @current-change="handleCurrentChange" :current-page="page.now" :page-sizes="[500]"
+            :page-size="page.size" layout="total, sizes, prev, pager, next, jumper" :total="file.all.length">
+          </el-pagination>
         </div>
-        <!-- row-click -->
-        <div id="fileListWin">
-          <el-table ref="fileListTable" :data="file.all.slice((page.now-1)*page.size,page.now*page.size)"
-            highlight-current-row border @current-change="onSelectFile" :row-class-name="'list-row'"
-            style="width: 100%">
-            <el-table-column type="index" width="50">
-            </el-table-column>
-            <el-table-column property="fileName" label="文件名" min-width="40vw" sortable>
-              <template slot-scope="scope">
-                <span @click="openFile(scope.row.filePath)">
-                  {{scope.row.fileName }}
-                </span>
-              </template>
-            </el-table-column>
-            <el-table-column property="filePath" show-overflow-tooltip label="路径" min-width="20vw">
-            </el-table-column>
-            <el-table-column min-width="10vw">
-              <template slot="header" slot-scope="scope"> 操作 </template>
-              <template slot-scope="scope">
-                <el-button size="small" @click="showItemInFolder(scope.$index, scope.row)"
-                  icon=" el-icon-folder-opened">
-                </el-button>
-              </template>
-            </el-table-column>
-          </el-table>
-        </div>
-        <el-pagination @current-change="handleCurrentChange" :current-page="page.now" :page-sizes="[500]"
-          :page-size="page.size" layout="total, sizes, prev, pager, next, jumper" :total="file.all.length">
-        </el-pagination>
-      </div>
-      <div id="fileActionWin" class="rightWin">
-        <div class="flexRowCenter marginTopButtom">
-          <el-switch v-model="file.tagOnHead" active-text="标签前置"></el-switch>
-          <el-switch v-model="file.openPreview" active-text="文件预览"></el-switch>
-        </div>
-        <div id="tagWin">
-          <el-input v-model="file.tagInput" size="large" clearable placeholder="输入标签 空格分隔">
-            <el-button slot="append" icon="el-icon-plus" @click="fileTagAdd(file.tagInput)"></el-button>
-          </el-input>
-          <el-collapse v-model="tagCfg.activeNames" @change="">
-            <el-collapse-item title="文件标签" name="1">
-              <div class="tagGroup">
-                <div v-if="nowFileTags.length==0">
-                </div>
-                <el-tag v-for="tag in nowFileTags" :disable-transitions="true" size="mini" closable
-                  @close="fileTagDel(tag)" type="success">
-                  {{tag}}
-                </el-tag>
-              </div>
-
-            </el-collapse-item>
-            <el-collapse-item title="固定标签" name="2">
+        <div id="fileActionWin" class="rightWin">
+          <div class="flexRowCenter switchsLine">
+            <el-switch v-model="file.tagOnHead" active-text="标签前置"></el-switch>
+            <el-switch v-model="file.openPreview" active-text="文件预览"></el-switch>
+          </div>
+          <div id="tagWin">
+            <el-input v-model="file.tagInput" size="large" clearable placeholder="输入标签 空格分隔">
+              <el-button slot="append" icon="el-icon-plus" @click="fileTagAdd(file.tagInput)"></el-button>
+            </el-input>
+            <div class="tagTitle">文件标签</div>
+            <div class="tagGroup">
+              <el-tag v-for="tag in nowFileTags" :disable-transitions="true" size="mini" closable
+                @close="fileTagDel(tag)" type="success">
+                {{tag}}
+              </el-tag>
+            </div>
+            <div class="tagTitle">固定标签</div>
+            <div class="tagGroup">
               <el-tag v-for="tag in storeData.staticTags" @click="fileTagAdd(tag)" type="success">{{tag}}</el-tag>
-            </el-collapse-item>
-            <el-collapse-item name="3">
-              <template slot="title">
-                历史标签<i class="el-icon-delete-solid"></i>
-              </template>
-              <el-button-group>
-                <el-button v-for="w in  tagCfg.headWord" @click="getHisTagShowList(w)" size="small" round class="word">
-                  {{w}}
-                </el-button>
-              </el-button-group>
-              <div class="tagGroup">
-                <el-tag v-for="tag in storeData.hisTagShowList" @click="fileTagAdd(tag)" type="success">
-                  {{tag}}
-                </el-tag>
-              </div>
-            </el-collapse-item>
-          </el-collapse>
+            </div>
+            <div class="tagTitle"> 历史标签
+              <el-popover placement="bottom" width="200" trigger="click">
+                <div>
+                  <el-input type="textarea" :rows="20" placeholder="请输入内容" v-model="tagCounts">
+                  </el-input>
+                </div>
+                <i slot="reference" class="el-icon-question"></i>
+              </el-popover>
+            </div>
+            <el-button-group>
+              <el-button v-for="w in  tagCfg.headWord" @click="getHisTagShowList(w)" size="small" round class="word">
+                {{w}}
+              </el-button>
+            </el-button-group>
+            <div id="buttomTagGroup" class="tagGroup">
+              <el-tag v-for="tag in storeData.hisTagShowList" @click="fileTagAdd(tag)" type="success">
+                {{tag}}
+              </el-tag>
+            </div>
+
+
+
+          </div>
         </div>
       </div>
     </div>
@@ -148,7 +155,7 @@
     data: {
       path: path,
       cfg: {
-        port: 8888
+        port: 10010
       },
       search: {
         withPath: true,
@@ -186,7 +193,8 @@
         hisAddTags: {},
         hisTagShowList: [],
         staticTags: ["删除标记", "收藏标记", "1星", "2星", "3星"],
-      }
+      },
+
     },
     computed: {
       nowFileTags() {
@@ -194,6 +202,15 @@
           return tagTools.getTags(this.file.nowSelect.fileName);
         } catch (error) {
           return []
+        }
+      },
+      tagCounts: {
+        get() {
+          return JSON.stringify(this.storeData.hisAddTags.countMap);
+        },
+        set(val) {
+          this.storeData.hisAddTags.countMap = JSON.parse(val);
+          console.log(val);
         }
       },
     },
@@ -224,27 +241,44 @@
       ipcRenderer.on('retVideoInfo', (event, message) => {
         console.log('retVideoInfo:', message)
         let vid = document.getElementById("vidWin");
-        videojs(vid).dispose();
-
+        if (vid) {
+          videojs(vid).dispose();
+        }
         if (message.fileType == ".mp4" && message.videoCodecSupport) {
           vid = createVideoHtml("video-container", "vidWin", message.videoSource);
-          player = videojs(vid);
-          player.play();
+          player = videojs(vid, {}, () => {
+            console.log("played");
+            player.play()
+          });
           return
         }
         var videoSource = `http://127.0.0.1:${this.cfg.port}?vPath=${encodeURIComponent(message.videoSource)}`;
         vid = createVideoHtml("video-container", "vidWin", videoSource);
         player = videojs(vid, {
+          autoplay: true,
           techOrder: ['StreamPlay'],
           StreamPlay: {
             src: videoSource,
             duration: message.duration
           }
         }, () => {
+          console.log("played");
           player.play()
         });
+
       })
 
+      document.onkeydown = (e) => {
+        //事件对象兼容
+        let e1 = e || event || window.event || arguments.callee.caller.arguments[0]
+        //键盘按键判断:左箭头-37;上箭头-38；右箭头-39;下箭头-40
+        if (e1 && e1.keyCode == 39) {
+          console.log('next')
+          this.nextRow()
+        }
+      }
+      messager = this.$message;
+      this.$message("hello")
     },
     beforeDestroy() {
 
@@ -275,9 +309,11 @@
       async doSearch() {
         var fileList = await this.esSearch(this.searchParamPaser());
         console.log(fileList);
+        var rowIdx = 0;
         this.file.all =
           fileList.map((filePath, idx) => {
             return {
+              index: rowIdx++,
               fileName: path.basename(filePath),
               filePath: filePath,
             };
@@ -285,13 +321,27 @@
         this.page.now = 1;
       },
       removeOccupy() {
-        document.getElementById("video-container").innerHTML = "";
+        try {
+          document.getElementById("video-container").innerHTML = "";
+          videojs.players.vidWin.dispose();
+        } catch (error) {
+
+        }
         ipcRenderer.send('removeOccupy', "");
       },
-      fileTagAdd(tag) {
+      async fileTagAdd(tag) {
         this.removeOccupy();
         var newTags = tag.split(" ");
-        var newFilePath = tagTools.addTagsToFile(this.file.nowSelect.filePath, newTags, this.tagOnHead);
+        var tryTime = 3;
+        var newFilePath = null;
+        while (!newFilePath && (tryTime--)) {
+          newFilePath = tagTools.addTagsToFile(this.file.nowSelect.filePath, newTags);
+          await sleep(50)
+        }
+        if (newFilePath == null) {
+          this.$message(`重命名${this.file.nowSelect.filePath}出错...`)
+          return
+        }
         this.file.nowSelect.filePath = newFilePath;
         this.file.nowSelect.fileName = path.basename(newFilePath);
 
@@ -303,6 +353,9 @@
       fileTagDel(tag) {
         this.removeOccupy();
         var newFilePath = tagTools.delTagsToFile(this.file.nowSelect.filePath, [tag]);
+        if (newFilePath == null) {
+          return
+        }
         this.file.nowSelect.filePath = newFilePath;
         this.file.nowSelect.fileName = path.basename(newFilePath);
       },
@@ -314,6 +367,10 @@
         }
         this.file.nowSelect = file;
         this.preViewPrepare();
+      },
+      nextRow() {
+        this.$refs.fileListTable.setCurrentRow(this.file.all[this.file.nowSelect.index + 1]);
+        document.getElementsByClassName("current-row")[0].scrollIntoView();
       },
       preViewPrepare() {
         pfileSuffix = path.extname(this.file.nowSelect.filePath).toLowerCase();
@@ -416,21 +473,45 @@
 
   #fileActionWin {
     display: flex;
+    flex: 1;
     flex-direction: column;
     align-content: center;
   }
 
-  .flexRowCenter {
+  .switchsLine {
     display: flex;
     justify-content: center;
     align-items: center;
     flex-direction: row;
     flex-wrap: nowrap;
+    min-height: 40px;
   }
 
-  .marginTopButtom {
-    margin-top: 10px;
-    margin-bottom: 10px;
+  #tagWin {
+    height: calc(100% - 40px);
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  .tagTitle {
+    padding-left: 10px;
+    padding-top: 5px;
+    background-color: #dfecd5;
+    border-bottom: #8fb2c9 solid;
+    border-bottom-left-radius: 10px;
+
+  }
+
+  .tagGroup {
+    padding: 3px;
+
+    font-size: 20px;
+    min-height: 5vh;
+    /* max-height: 100%; */
+    overflow-y: scroll;
+    border-bottom: #eef7f2 solid;
+    border-bottom-right-radius: 10px;
   }
 
   .leftWin {
@@ -470,11 +551,7 @@
     text-align: center;
   }
 
-  .tagGroup {
-    min-height: 5vh;
-    max-height: 20vh;
-    overflow-y: scroll;
-  }
+
 
   .previewer {
     width: 74vw;

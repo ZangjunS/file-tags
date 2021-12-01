@@ -27,7 +27,7 @@ function createWindow() {
 
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
-  mainWindow.openDevTools();
+  // mainWindow.openDevTools();
 }
 
 // This method will be called when Electron has finished
@@ -85,9 +85,6 @@ global.sharedObject = {
 //video
 var httpServer;
 var streamPort;
-ipcMain.on("videoFileSeleted", (event, args) => {
-  onVideoFileSeleted(args)
-});
 
 ipcMain.on("cfgLoaded", (event, args) => {
   streamPort = args.port;

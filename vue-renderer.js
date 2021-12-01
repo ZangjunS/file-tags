@@ -14,7 +14,7 @@ const execSync = require("child_process").execSync;
 var cmd = require("node-cmd");
 
 /**/
-
+messager = console.log;
 var tagTools = {
   tagToHead: true,
   strNotEmpty(value) {
@@ -24,14 +24,15 @@ var tagTools = {
     return value != null && value != undefined && !reg.test(value);
   },
   renameFile(pathToFile, newPathToFile) {
-    fs.rename(pathToFile, newPathToFile, function (err) {
-      if (err) {
-        console.log(`重命名${pathToFile}出错...`);
-        throw err;
-      } else {
-        console.log("Successfully renamed the fie!");
-      }
-    });
+
+    try {
+      fs.renameSync(pathToFile, newPathToFile)
+      console.log("Successfully renamed the file!");
+      return newPathToFile;
+    } catch (error) {
+      console.log(`重命名${pathToFile}出错...`)
+    }
+    return null;
   },
   getTags(fileName) {
     fileName = new String(fileName);
@@ -41,9 +42,7 @@ var tagTools = {
       return [];
     }
     var tagstr = fileName.substring(tagStart, tagEnd);
-    // tagstr = tagstr.replace("[", " ");
-    // tagstr = tagstr.replace("]", " ");
-    // tagstr = tagstr.replace(/ /g, " ");
+
     tagstr = tagstr.replace(/[\] []/g, " ");
     return [...new Set(tagstr.split(" "))].filter(this.strNotEmpty);
   },
@@ -89,25 +88,25 @@ var tagTools = {
     this.renameFile(filePath, path.join(dirname, newFileName));
     return path.join(dirname, newFileName);
   },
-  addTagsToFile(filePath, addtags, tagToHead) {
+  addTagsToFile(filePath, addtags) {
     if (typeof addtags == 'string') {
       addtags = addtags.split(" ");
     }
     var basename = path.basename(filePath);
     var dirname = path.dirname(filePath);
-    var newFileName = this.addTags(basename, addtags, tagToHead);
+    var newFileName = this.addTags(basename, addtags);
     if (basename == newFileName) {
       return filePath;
     }
-    this.renameFile(filePath, path.join(dirname, newFileName));
-    return path.join(dirname, newFileName);
+
+    return this.renameFile(filePath, path.join(dirname, newFileName));
   },
   delTagsToFile(filePath, deltags) {
     var basename = path.basename(filePath);
     var dirname = path.dirname(filePath);
     var newFileName = this.delTags(basename, deltags);
-    this.renameFile(filePath, path.join(dirname, newFileName));
-    return path.join(dirname, newFileName);
+
+    return this.renameFile(filePath, path.join(dirname, newFileName));
   },
 };
 

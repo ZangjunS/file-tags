@@ -92,38 +92,9 @@ function pySegSort(arr, empty) {
   })
   return segs;
 }
-var db = {
-  resentSeaTag: new LruCache(10),
-  fileLibraryDirs: new LruCache(10),
-  currentEditTbNode: {},
-  staticTags: ["删除标记", "收藏标记", "1星", "2星", "3星"],
-  resentAddTag: new CounterSortList({}, ["删除标记", "收藏标记", "1星", "2星", "3星"])
-};
-var dbTools = {
-  async dbLoad() {
-    return new Promise((res, rej) => {
-      try {
-        var resentAddTag = JSON.parse(localStorage.getItem("resentAddTag"));
-        resentAddTag = resentAddTag == null ? {} : resentAddTag;
-        db.resentAddTag.countMap = resentAddTag;
-        var fileLibraryDirs = JSON.parse(
-          localStorage.getItem("fileLibraryDirs")
-        );
-        if (fileLibraryDirs == null) {
-          fileLibraryDirs = [];
-        }
-        fileLibraryDirs.forEach((element) => {
-          db.fileLibraryDirs.put(element);
-        });
-        res(db);
-      } catch (error) {
-        rej(error);
-      }
-    });
-  },
-  dbSave() {
-    localStorage.setItem("resentAddTag", JSON.stringify(db.resentAddTag.countMap));
-    localStorage.setItem("fileLibraryDirs", JSON.stringify(db.fileLibraryDirs.list));
-  },
-};
-window.onunload = dbTools.dbSave;
+
+function sleep(ms) {
+  return new Promise((res, rej) => {
+    setTimeout(res, ms)
+  })
+}

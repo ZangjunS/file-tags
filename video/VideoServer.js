@@ -50,31 +50,31 @@ class VideoServer {
             console.log("on request", request.url);
             var startTime = parseInt(getParam(request.url, "startTime") - 0);
             var file = decodeURIComponent(getParam(request.url, "vPath"));
-            let videoCodec = "h264_qsv";
-            // let videoCodec = 'libx264';
+            // let videoCodec = "h264_qsv";
+            let videoCodec = 'libx264';
             let audioCodec = 'aac';
             this.killFfmpegCommand();
             this._ffmpegCommand = ffmpeg()
                 // .input(this.videoSourceInfo.videoSourcePath)
                 .input(file)
                 .nativeFramerate()
-                // .size("10%")
-                // .fps(30)
+                .size("50%")
+                .fps(30)
                 // .frames(600)
-                // .videoBitrate('1024k')
+                // .videoBitrate('64K')
                 .videoCodec(videoCodec)
                 .audioCodec(audioCodec)
                 .format('mp4')
                 .seekInput(startTime)
                 .outputOptions(
-                    "-hwaccel", "qsv","-noautorotate"
-                    // '-movflags', 'frag_keyframe+empty_moov+faststart',
-                    // '-g', '18',
-                    // "-threads", "3",
-                    // "-preset", "ultrafast",
-                    // "-profile", "Baseline",
-                    // "-tune", "zerolatency "
-                    )
+                    '-movflags', 'frag_keyframe+empty_moov+faststart',
+                    '-g', '18',
+                    "-threads", "4",
+                    "-preset", "ultrafast",
+                    "-profile", "Baseline",
+                    "-tune", "zerolatency",
+                    "-bufsize","10240K"
+                )
                 .on('progress', function (progress) {
                     console.log('time: ' + progress.timemark);
                 })
