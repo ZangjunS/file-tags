@@ -370,7 +370,7 @@
         if (message.fileType == ".mp4" && message.videoCodecSupport) {
           videoSource = message.videoSource;
         } else {
-          videoSource =
+          videoSource =//&startTime=${message.duration/3}
             `http://127.0.0.1:${this.cfg.port}?vPath=${encodeURIComponent(message.videoSource)}`;
           playcfg = {
             autoplay: true,
@@ -388,6 +388,7 @@
             _vue.playVideo(message)
           })
           player.play()
+          player.currentTime(message.duration/3)
         });
       },
       //当前页改变时触发 跳转其他页,并选中第一行
