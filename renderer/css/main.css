@@ -1,0 +1,142 @@
+#app {
+    font-size: 20px;
+    background-color: rgb(255, 250, 244);
+}
+
+/*
+ *  STYLE 7
+ */
+*::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+    background-color: #f5f5f5;
+    border-radius: 10px;
+}
+
+*::-webkit-scrollbar {
+    width: 5px;
+    background-color: #f5f5f5;
+}
+
+*::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    background-image: -webkit-gradient(linear,
+            left bottom,
+            left top,
+            color-stop(0.44, rgb(144, 149, 212)),
+            color-stop(0.72, rgb(73, 125, 189)),
+            color-stop(0.86, rgb(28, 58, 148)));
+}
+
+#searchWin {
+    display: flex;
+    flex: 1;
+    height: 50px;
+}
+
+#contentWin {
+    display: flex;
+    flex: 1;
+    height: calc(99vh - 60px)
+}
+
+#fileShowWin {
+    display: flex;
+    flex-direction: column;
+    /* flex: 1; */
+}
+
+#fileViewWin {
+    min-height: 50vh;
+}
+
+#fileListWin {
+    /* max-height: 40vh; */
+    overflow-y: scroll;
+}
+
+#fileActionWin {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-content: center;
+}
+
+.switchsLine {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    min-height: 40px;
+}
+
+#tagWin {
+    height: calc(100% - 40px);
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.tagTitle {
+    padding-left: 10px;
+    padding-top: 5px;
+    background-color: #dfecd5;
+    border-bottom: #8fb2c9 solid;
+    border-bottom-left-radius: 10px;
+
+}
+
+.tagGroup {
+    padding: 3px;
+
+    font-size: 20px;
+    min-height: 5vh;
+    /* max-height: 100%; */
+    overflow-y: scroll;
+    border-bottom: #eef7f2 solid;
+    border-bottom-right-radius: 10px;
+}
+
+.leftWin {
+    width: 75vw;
+}
+
+.rightWin {
+    display: flex;
+    flex: 1;
+    /* width: 35vw; */
+    border: 3px solid rgb(162, 170, 173);
+    border-radius: 5px;
+}
+
+.borderd {
+    border: 3px solid rgb(162, 170, 173);
+    border-radius: 5px;
+}
+
+.el-tag {
+    margin-left: 3px;
+}
+
+.el-table .list-row {
+    background: #fdfff1;
+}
+
+/* .el-table, .el-table__expanded-cell{
+    background-color: rgb(255, 250, 244);
+  } */
+.el-collapse-item__content {
+    padding-bottom: 0%;
+}
+
+.word {
+    /* width: 0px; */
+    text-align: center;
+}
+
+
+
+.previewer {
+    width: 74vw;
+    height: 49vh;
+}
