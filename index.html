@@ -11,11 +11,11 @@
   <link rel="stylesheet" href="./element/index.css">
   <link rel="stylesheet" href="./renderer/js/video.js/dist/video-js.css">
   <link rel="stylesheet" href="./renderer/css/main.css">
-  <script src="./electron-vue.js"></script>
+  <script src="./renderer/electron-vue.js"></script>
   <script src="./element/index.js"></script>
-  <script src="./tools.js"></script>
-  <script src="./rendererLinkMain.js"></script>
-  <script src="./vue-renderer.js"></script>
+  <script src="./renderer/tools.js"></script>
+  <script src="./renderer/rendererLinkMain.js"></script>
+  <script src="./renderer/vue-renderer.js"></script>
 </head>
 
 <body>
@@ -369,7 +369,7 @@
         var playcfg = {};
         var videoSource = "";
         if (message.fileType == ".mp4" && message.videoCodecSupport) {
-          videoSource =encodeURIComponent (message.videoSource);
+          videoSource = encodeURIComponent(message.videoSource);
         } else {
           videoSource = //&startTime=${message.duration/3}
             `http://127.0.0.1:${this.cfg.port}?vPath=${encodeURIComponent(message.videoSource)}&startTime=${message.duration/4}`;
