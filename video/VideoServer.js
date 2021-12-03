@@ -61,7 +61,7 @@ class VideoServer {
                 .size("50%")
                 .fps(30)
                 // .frames(600)
-                // .videoBitrate('64K')
+                .videoBitrate('526k')
                 .videoCodec(videoCodec)
                 .audioCodec(audioCodec)
                 .format('mp4')
