@@ -44,7 +44,7 @@
             </el-button>
             <el-button slot="reference">收藏路径</el-button>
           </el-popover>
-           
+
         </div>
       </div>
       <div id="contentWin">
@@ -369,7 +369,7 @@
         var playcfg = {};
         var videoSource = "";
         if (message.fileType == ".mp4" && message.videoCodecSupport) {
-          videoSource = encodeURIComponent(message.videoSource);
+          videoSource = message.videoSource.replace('#', '%23');
         } else {
           videoSource = //&startTime=${message.duration/3}
             `http://127.0.0.1:${this.cfg.port}?vPath=${encodeURIComponent(message.videoSource)}&startTime=${message.duration/4}`;
