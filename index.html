@@ -22,15 +22,20 @@
   <div id="app">
     <div @click.middle="nextRow()">
       <div id="searchWin">
-        <el-input v-model="search.val" size="large" clearable placeholder="请输入内容" class="leftWin upWin">
+        <el-input v-if="!sys.simpleMode" v-model="search.val" size="large" clearable placeholder="请输入内容"
+          class="leftWin upWin">
           <el-button ref="searchBtn" slot="append" icon="el-icon-search" @click="doSearch"></el-button>
           <!-- <i slot="suffix" class="el-input__icon el-icon-search"></i> -->
         </el-input>
         <div class="rightWin upWin">
-          <div style="margin-left: 10px;margin-right: 10px;">
-            <el-switch v-model="search.withPath" active-text="路径下搜索" style="display: block;"></el-switch>
-            <el-switch v-model="search.withSubPath" active-text="包含子目录" style="display: block;"></el-switch>
-          </div>
+          <el-popover placement="bottom" title="设置" trigger="click">
+            <div style="margin-left: 10px;margin-right: 10px;">
+              <el-switch v-model="search.withPath" active-text="路径下搜索" style="display: block;"></el-switch>
+              <el-switch v-model="search.withSubPath" active-text="包含子目录" style="display: block;"></el-switch>
+              <el-switch v-model="sys.simpleMode" @change="changeMode()" active-text="简洁模式"></el-switch>
+            </div>
+            <el-button slot="reference">设置</el-button>
+          </el-popover>
 
           <el-popover placement="bottom" title="收藏路径" trigger="click">
             <div v-for="dir in this.storeData.archivePath" style="font-size: 20px;">
@@ -44,11 +49,11 @@
             </el-button>
             <el-button slot="reference">收藏路径</el-button>
           </el-popover>
-
         </div>
+
       </div>
       <div id="contentWin">
-        <div id="fileShowWin" class="leftWin">
+        <div id="fileShowWin" class="leftWin" v-if="!sys.simpleMode">
           <div id="fileViewWin" v-if="file.openPreview" class="borderd" v-for="(pfilePath) of 1">
             {{void (pfilePath=file.nowSelect.filePath )}}
             <div v-if="pfilePath!=null" v-for="(pfileType) of 1">
@@ -106,6 +111,7 @@
             <el-switch v-model="file.openPreview" active-text="预览"></el-switch>
           </div>
           <div id="tagWin">
+          <div>{{path.basename(file.nowSelect.filePath)}}</div>
             <el-input v-model="file.tagInput" size="large" clearable placeholder="输入标签 空格分隔">
               <el-button slot="append" icon="el-icon-plus" @click="fileTagAdd(file.tagInput,true)"></el-button>
             </el-input>
@@ -151,6 +157,7 @@
   var app = new Vue({
     el: '#app',
     data: {
+      sys: sys,
       path: path,
       cfg: {
         port: 10010
@@ -171,6 +178,7 @@
         openPreview: true,
         all: [],
         nowSelect: {
+          filePath: "",
           fileName: "",
           tags: []
         }
@@ -208,7 +216,11 @@
       },
     },
     mounted() {
-      this.search.val = cmdArgs[1]
+      this.search.val = this.sys.cmdArgs[1]
+      if (this.sys.cmdArgs[1] == "M1") {
+        this.sys.simpleMode = true;
+        this.changeMode();
+      }
       console.log((new Date()).valueOf());
       var his = Object.assign({}, JSON.parse(localStorage.getItem("hisAddTags")));
       this.storeData.hisAddTags = new CounterSortList(his, this.tagTools.staticTags);
@@ -252,13 +264,23 @@
 
     },
     methods: {
+      changeMode() {
+        if (this.sys.simpleMode) {
+          this.file.nowSelect.fileName = "";
+          FileDetecter.start(this.file.nowSelect);
+          remote.getCurrentWindow().setSize(400, 800);
+          remote.getCurrentWindow().setAlwaysOnTop(true);
+        } else {
+          FileDetecter.stop();
+        }
 
+      },
       getHisTagShowList(word) {
         this.storeData.hisTagShowList = this.storeData.hisAddTags.getTop(word);
       },
       searchParamPaser() {
         var sParam = this.search.val;
-        var cmds = `CHCP 65001>nul && "es.exe" `;
+        var cmds = `CHCP 65001>nul && "${this.sys.path}\\es.exe" `;
         if (this.search.withPath) {
           sParam += " -p";
         }
@@ -386,7 +408,8 @@
         player = videojs(vid, playcfg, function () {
           console.log("playerdone");
           this.on('error', () => {
-            _vue.playVideo(message)
+            _vue.openFile(message.videoSource);
+            // _vue.playVideo(message)
           })
           player.play()
           // player.currentTime(message.duration / 3)

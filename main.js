@@ -79,7 +79,8 @@ function backLog(message) {
 }
 
 global.sharedObject = {
-  cmdArgs: process.argv
+  cmdArgs: process.argv,
+  // pathExe: app.getAppPath("exe"),
 }
 
 //video

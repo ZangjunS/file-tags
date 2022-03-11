@@ -186,3 +186,27 @@ var tagTools = {
     return this.renameFile(filePath, path.join(dirname, newFileName));
   },
 };
+
+var FileDetecter = {
+  lastFile: "",
+  file: {},
+  start(f) {
+    this.file = f;
+    f.filePath = "???"
+    setInterval(this.detectFile, 1000);
+  },
+  stop() {},
+  detectFile() {
+    var utf8CharCodes = new TextDecoder("utf-8").decode(execSync(`${sys.path}\\getfile.bat`)).trim();
+    // FileDetecter.file.fileName = cmdRes;
+    if (utf8CharCodes == "NNNNN") {
+      return;
+    }
+   var spath = utf8CharCodes.split(",").map(c => String.fromCharCode(c)).join("").trim();
+    if (FileDetecter.lastFile != spath && FileDetecter.file.filePath != spath) {
+      FileDetecter.file.filePath = spath;
+      FileDetecter.lastFile = spath
+    }
+    return spath;
+  }
+}
