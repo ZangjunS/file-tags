@@ -188,25 +188,21 @@ var tagTools = {
 };
 
 var FileDetecter = {
-  lastFile: "",
-  file: {},
-  start(f) {
-    this.file = f;
-    f.filePath = "???"
-    setInterval(this.detectFile, 1000);
-  },
-  stop() {},
   detectFile() {
     var utf8CharCodes = new TextDecoder("utf-8").decode(execSync(`${sys.path}\\getfile.bat`)).trim();
     // FileDetecter.file.fileName = cmdRes;
     if (utf8CharCodes == "NNNNN") {
-      return;
+      return "NNNNN";
     }
-   var spath = utf8CharCodes.split(",").map(c => String.fromCharCode(c)).join("").trim();
-    if (FileDetecter.lastFile != spath && FileDetecter.file.filePath != spath) {
-      FileDetecter.file.filePath = spath;
-      FileDetecter.lastFile = spath
-    }
+    var spath = utf8CharCodes.split(",").map(c => String.fromCharCode(c)).join("").trim();
     return spath;
-  }
+  },
+  esSearch(sParam) {
+    var sCmd = `CHCP 65001>nul && "${sys.path}\\es.exe" ${sParam.searchOneLayer?"-parent ":""} ${sParam.val} ${sParam.withPath?"-p":""} `;
+    var cmdRes = new TextDecoder("utf-8").decode(execSync(sCmd));
+    var res = cmdRes.split(/[\r\n]+/);
+    return new Promise((resolve) => {
+      resolve(res.filter(tagTools.strNotEmpty));
+    });
+  },
 }

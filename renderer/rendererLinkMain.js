@@ -25,4 +25,5 @@ sys = {
     pathExe: process.execPath,
     path: path.dirname(process.execPath),
     simpleMode: false,
+    
 }

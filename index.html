@@ -31,7 +31,7 @@
           <el-popover placement="bottom" title="设置" trigger="click">
             <div style="margin-left: 10px;margin-right: 10px;">
               <el-switch v-model="search.withPath" active-text="路径下搜索" style="display: block;"></el-switch>
-              <el-switch v-model="search.withSubPath" active-text="包含子目录" style="display: block;"></el-switch>
+              <el-switch v-model="search.searchOneLayer" active-text="只搜索一层" style="display: block;"></el-switch>
               <el-switch v-model="sys.simpleMode" @change="changeMode()" active-text="简洁模式"></el-switch>
             </div>
             <el-button slot="reference">设置</el-button>
@@ -111,7 +111,7 @@
             <el-switch v-model="file.openPreview" active-text="预览"></el-switch>
           </div>
           <div id="tagWin">
-          <div>{{path.basename(file.nowSelect.filePath)}}</div>
+            <div class="miniStr">{{file.nowSelect.fileName}}</div>
             <el-input v-model="file.tagInput" size="large" clearable placeholder="输入标签 空格分隔">
               <el-button slot="append" icon="el-icon-plus" @click="fileTagAdd(file.tagInput,true)"></el-button>
             </el-input>
@@ -164,7 +164,7 @@
       },
       search: {
         withPath: true,
-        withSubPath: false,
+        searchOneLayer: false,
         val: "",
       },
       tagTools: tagTools,
@@ -177,6 +177,7 @@
         tagInput: "",
         openPreview: true,
         all: [],
+        detectedFile: "",
         nowSelect: {
           filePath: "",
           fileName: "",
@@ -266,38 +267,29 @@
     methods: {
       changeMode() {
         if (this.sys.simpleMode) {
-          this.file.nowSelect.fileName = "";
-          FileDetecter.start(this.file.nowSelect);
+          this.sys.detectInterval = setInterval(this.detectFile, 1000);
+          this.file.nowSelect.filePath = "";
           remote.getCurrentWindow().setSize(400, 800);
           remote.getCurrentWindow().setAlwaysOnTop(true);
         } else {
-          FileDetecter.stop();
+          clearInterval(this.sys.detectInterval);
+          remote.getCurrentWindow().setSize(1300, 800);
+          remote.getCurrentWindow().setAlwaysOnTop(false);
         }
-
+      },
+      detectFile() {
+        var spath = FileDetecter.detectFile();
+        if (spath != "NNNNN" && this.file.detectedFile != spath) {
+          this.file.nowSelect.filePath = spath;
+          this.file.nowSelect.fileName = path.basename(spath);
+          this.file.detectedFile = spath;
+        }
       },
       getHisTagShowList(word) {
         this.storeData.hisTagShowList = this.storeData.hisAddTags.getTop(word);
       },
-      searchParamPaser() {
-        var sParam = this.search.val;
-        var cmds = `CHCP 65001>nul && "${this.sys.path}\\es.exe" `;
-        if (this.search.withPath) {
-          sParam += " -p";
-        }
-        if (!this.search.withSubPath) {
-          sParam = " -parent " + sParam;
-        }
-        return cmds + sParam;
-      },
-      esSearch(sParam) {
-        var cmdRes = new TextDecoder("utf-8").decode(execSync(sParam));
-        var res = cmdRes.split(/[\r\n]+/);
-        return new Promise((resolve) => {
-          resolve(res.filter(tagTools.strNotEmpty));
-        });
-      },
       async doSearch() {
-        var fileList = await this.esSearch(this.searchParamPaser());
+        var fileList = await FileDetecter.esSearch(this.search);
         console.log(fileList);
         var rowIdx = 0;
         this.file.all =

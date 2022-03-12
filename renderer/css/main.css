@@ -67,7 +67,9 @@
     align-items: center;
     flex-direction: row;
     flex-wrap: nowrap;
-    min-height: 40px;
+    /* min-height: 40px; */
+    padding-top: 5px;
+    padding-bottom: 5px;
 }
 
 #tagWin {
@@ -78,6 +80,7 @@
 }
 
 .tagTitle {
+    font-size: 15px;
     padding-left: 10px;
     padding-top: 5px;
     background-color: #dfecd5;
@@ -139,4 +142,14 @@
 .previewer {
     width: 74vw;
     height: 49vh;
+}
+
+.miniStr {
+    white-space: nowrap;
+    width: 60%;
+    max-width: 300px;
+    overflow: hidden;
+    font-size: 10px;
+    padding: 5px;
+    padding-bottom: 10px;
 }
