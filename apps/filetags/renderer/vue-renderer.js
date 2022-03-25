@@ -12,7 +12,7 @@ function createVideoHtml(contain, vidWin, source) {
   // const [width, height] = []
   const videoHtml =
     `<video id="${vidWin}" class="video-js vjs-big-play-centered" controls preload="auto"
-     style="width: 74vw; height: 49vh" data-setup="{}">
+     style="   max-width: 50vw; height: 49vh" data-setup="{}">
   <source src="${source}" type="video/mp4" >
   </video>`
   document.getElementById(contain).innerHTML = videoHtml

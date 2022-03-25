@@ -8,11 +8,12 @@
   <!-- default-src 'self' style-src 'self' 'unsafe-inline'; -->
 
   <title>Hello fileTags</title>
-  <link rel="stylesheet" href="./element/index.css">
+  <script src="../base/electron-vue.js"></script>
+  <script src="../base/element/index.js"></script>
+  <link rel="stylesheet" href="../base/element/index.css">
+
   <link rel="stylesheet" href="./renderer/js/video.js/dist/video-js.css">
   <link rel="stylesheet" href="./renderer/css/main.css">
-  <script src="./renderer/electron-vue.js"></script>
-  <script src="./element/index.js"></script>
   <script src="./renderer/tools.js"></script>
   <script src="./renderer/rendererLinkMain.js"></script>
   <script src="./renderer/vue-renderer.js"></script>
@@ -21,7 +22,7 @@
 <body>
   <div id="app">
     <div @click.middle="nextRow()">
-      <div id="searchWin">
+      <div class="contentWin searchWin ">
         <el-input v-if="!sys.simpleMode" v-model="search.val" size="large" clearable placeholder="请输入内容"
           class="leftWin upWin">
           <el-button ref="searchBtn" slot="append" icon="el-icon-search" @click="doSearch"></el-button>
@@ -52,14 +53,14 @@
         </div>
 
       </div>
-      <div id="contentWin">
+      <div class="contentWin">
         <div id="fileShowWin" class="leftWin" v-if="!sys.simpleMode">
           <div id="fileViewWin" v-if="file.openPreview" class="borderd" v-for="(pfilePath) of 1">
             {{void (pfilePath=file.nowSelect.filePath )}}
             <div v-if="pfilePath!=null" v-for="(pfileType) of 1">
               {{void (pfileType=file.nowSelect.preivewType )}}
               <div v-if="pfileType =='txt'">
-                <iframe :src="pfilePath" class="previewer"></iframe>
+                <iframe :src="pfilePath" class="previewer" style="width: 100%;"></iframe>
               </div>
               <div v-if="pfileType =='img'">
                 <el-image :src="pfilePath" :fit="'contain'" :preview-src-list="[pfilePath]" class="previewer">
@@ -81,21 +82,25 @@
               style="width: 100%">
               <el-table-column type="index" width="50">
               </el-table-column>
-              <el-table-column property="fileName" label="文件名" min-width="40vw" sortable>
+              <el-table-column property="fileName" label="文件名" sortable>
                 <template slot-scope="scope">
                   <span @click="openFile(scope.row.filePath)">
                     {{scope.row.fileName }}
                   </span>
                 </template>
               </el-table-column>
-              <el-table-column property="filePath" show-overflow-tooltip label="路径" min-width="20vw">
-              </el-table-column>
-              <el-table-column min-width="10vw">
+
+              <el-table-column width="100">
                 <template slot="header" slot-scope="scope"> 操作 </template>
                 <template slot-scope="scope">
-                  <el-button size="small" @click="showItemInFolder(scope.$index, scope.row)"
-                    icon=" el-icon-folder-opened">
-                  </el-button>
+                  <el-tooltip class="item" effect="dark" placement="left" :enterable="false">
+                    <div slot="content" style="max-width: 300px;">
+                      {{scope.row.filePath}}
+                    </div>
+                    <el-button @click="showItemInFolder(scope.$index, scope.row)" icon=" el-icon-folder-opened"
+                      size="small">
+                    </el-button>
+                  </el-tooltip>
                 </template>
               </el-table-column>
             </el-table>
@@ -111,7 +116,8 @@
             <el-switch v-model="file.openPreview" active-text="预览"></el-switch>
           </div>
           <div id="tagWin">
-            <div class="miniStr">{{file.nowSelect.fileName}}</div>
+            <input class="miniStr" v-model="file.nowSelect.fileName"
+              @change="file.nowSelect.filePath = tagTools.renameFile(file.nowSelect.filePath,path.join(path.dirname(file.nowSelect.filePath), file.nowSelect.fileName));"></input>
             <el-input v-model="file.tagInput" size="large" clearable placeholder="输入标签 空格分隔">
               <el-button slot="append" icon="el-icon-plus" @click="fileTagAdd(file.tagInput,true)"></el-button>
             </el-input>
@@ -125,10 +131,16 @@
             <div class="tagTitle">固定标签</div>
             <div class="tagGroup">
               <el-tag v-for="tag in tagTools.staticTags" @click="fileTagAdd(tag)" type="success">{{tag}}</el-tag>
+              <el-tag @click="storeData.hisAddTags.ignoreVals.push(DateUtil.nowDay());fileTagAdd(DateUtil.nowDay())"
+                type="success">
+                日期</el-tag>
             </div>
             <div class="tagTitle"> 历史标签
               <el-popover placement="bottom" width="200" trigger="click">
                 <div>
+                  <el-button @click="changeHisTags()" size="small">
+                    切换历史标签
+                  </el-button>
                   <el-input type="textarea" :rows="20" placeholder="请输入内容" v-model="tagCounts">
                   </el-input>
                 </div>
@@ -157,6 +169,7 @@
   var app = new Vue({
     el: '#app',
     data: {
+      DateUtil: DateUtil,
       sys: sys,
       path: path,
       cfg: {
@@ -193,7 +206,8 @@
       storeData: {
         archivePath: [],
         hisAddTags: {},
-        hisTagShowList: [],
+        hisAddTags2: {},
+        hisTagShowList: [{}],
 
       },
 
@@ -225,10 +239,13 @@
       console.log((new Date()).valueOf());
       var his = Object.assign({}, JSON.parse(localStorage.getItem("hisAddTags")));
       this.storeData.hisAddTags = new CounterSortList(his, this.tagTools.staticTags);
+      var his2 = Object.assign({}, JSON.parse(localStorage.getItem("hisAddTags2")));
+      this.storeData.hisAddTags2 = new CounterSortList(his2, this.tagTools.staticTags);
       this.storeData.archivePath = Object.assign([], JSON.parse(localStorage.getItem("archivePath")));
       this.getHisTagShowList("*");
       window.onunload = () => {
         localStorage.setItem("hisAddTags", JSON.stringify(this.storeData.hisAddTags.countMap));
+        localStorage.setItem("hisAddTags2", JSON.stringify(this.storeData.hisAddTags2.countMap));
         localStorage.setItem("archivePath", JSON.stringify(this.storeData.archivePath));
         localStorage.setItem("des", "des");
       };
@@ -265,15 +282,21 @@
 
     },
     methods: {
+      changeHisTags() {
+        var t = this.storeData.hisAddTags;
+        this.storeData.hisAddTags = this.storeData.hisAddTags2;
+        this.storeData.hisAddTags2 = t;
+        this.getHisTagShowList("*");
+      },
       changeMode() {
         if (this.sys.simpleMode) {
           this.sys.detectInterval = setInterval(this.detectFile, 1000);
           this.file.nowSelect.filePath = "";
-          remote.getCurrentWindow().setSize(400, 800);
+          remote.getCurrentWindow().setSize(380, 800);
           remote.getCurrentWindow().setAlwaysOnTop(true);
         } else {
           clearInterval(this.sys.detectInterval);
-          remote.getCurrentWindow().setSize(1300, 800);
+          remote.getCurrentWindow().setSize(850, 800);
           remote.getCurrentWindow().setAlwaysOnTop(false);
         }
       },

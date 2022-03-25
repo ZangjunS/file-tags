@@ -10,11 +10,17 @@ const {
   videoSupport
 } = require('./video/ffmpeg-helper');
 const VideoServer = require('./video/VideoServer').VideoServer;
+
+global.sharedObject = {
+  cmdArgs: process.argv,
+  // pathExe: app.getAppPath("exe"),
+}
+
 var mainWindow;
 // Create the browser window.
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1300,
+    width: 850,
     height: 800,
     webPreferences: {
       nodeIntegration: true,
@@ -23,8 +29,12 @@ function createWindow() {
   });
 
   // and load the index.html of the app.
-  mainWindow.loadFile("index.html");
 
+  var app = "filetags";
+  if (process.argv[1] == "-Fun") {
+    app = process.argv[2];
+  }
+  mainWindow.loadFile("apps/" + app + "/index.html");
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
   // mainWindow.openDevTools();
@@ -76,11 +86,6 @@ ipcMain.on("wantAdir", (event, args) => {
 
 function backLog(message) {
   mainWindow.webContents.send('backLog', message);
-}
-
-global.sharedObject = {
-  cmdArgs: process.argv,
-  // pathExe: app.getAppPath("exe"),
 }
 
 //video
