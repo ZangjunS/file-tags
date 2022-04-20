@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+  <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+  <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'  'unsafe-inline'" />
+  <!-- default-src 'self' style-src 'self' 'unsafe-inline'; -->
+
+  <title>Hello fileTags</title>
+  <script src="../base/rendererLinkMain.js"></script>
+  <script src="../base/electron-vue.js"></script>
+  <script src="../base/element/index.js"></script>
+  <link rel="stylesheet" href="../base/element/index.css">
+</head>
+
+<body>
+  <div id="app">
+
+    <div>
+      <el-input placeholder="请输入内容" v-model="src">
+        <template slot="prepend">来源路径</template>
+        <el-button slot="append" @click="selectDir('src')">选择</el-button>
+      </el-input>
+    </div>
+    <div>
+      <el-input placeholder="请输入内容" v-model="dst">
+        <template slot="prepend">目标路径</template>
+        <el-button slot="append" @click="selectDir('dst')">选择</el-button>
+      </el-input>
+    </div>
+    <div style="display: flex;    
+    flex-direction: row-reverse;
+    justify-content: flex-start;">
+      <el-button @click="merge">合并</el-button>
+      <el-select v-model="mergeType" placeholder="请选择">
+        <el-option label="较小文件" value="sizeMin"> </el-option>
+        <el-option label="较大文件" value="sizeMax"> </el-option>
+        <el-option label="较新时间" value="mtime"> </el-option>
+      </el-select>
+    </div>
+    <div>
+      <el-progress :percentage="percentage" status="success"></el-progress>
+    </div>
+    <div>
+      {{errFiles}}
+    </div>
+  </div>
+</body>
+
+<script>
+  var app = new Vue({
+    el: '#app',
+    data: {
+      percentage: 0,
+      allFile: 1,
+      doneFile: 0,
+      path: path,
+      message: {
+        el: "hello"
+      },
+      whoNeedDir: "",
+      src: "",
+      dst: "",
+      mergeType: "sizeMin",
+      errFiles: []
+    },
+    computed: {
+
+    },
+    mounted() {
+      // ipcListen
+      ipcRenderer.on("retAdir", (event, path) => {
+        this[this.whoNeedDir] = path;
+      });
+    },
+    beforeDestroy() {
+
+    },
+    methods: {
+      mergeBy(type, fileSrc, fileDst) {
+        if (fileDst == null) {
+          return true;
+        }
+        if (type == "sizeMin") {
+          return fileSrc.size < fileDst.size
+        }
+        if (type == "sizeMax") {
+          return fileSrc.size > fileDst.size
+        }
+        if (type == "mtime") {
+          return fileSrc.mtime > fileDst.mtime
+        }
+      },
+      findFileRelativePathSync(startPath) {
+        let result = {};
+
+        function finder(relpath) {
+          let files = fs.readdirSync(path.join(startPath, relpath));
+          files.forEach((val, index) => {
+            let fPath = path.join(startPath, relpath, val);
+            let stats = fs.statSync(fPath);
+            if (stats.isDirectory()) finder(path.join(relpath, val));
+            if (stats.isFile()) {
+              result[path.join(relpath, val)] = stats;
+            }
+          });
+        }
+        finder("/");
+        return result;
+      },
+
+      selectDir(whoNeedDir) {
+        this.whoNeedDir = whoNeedDir;
+        ipcRenderer.send("wantAdir", "hello");
+      },
+      merge() {
+        this.doneFile = 0;
+        var srcFiles = this.findFileRelativePathSync(this.src);
+        this.allFile = Object.keys(srcFiles).length
+        var dstFiles = this.findFileRelativePathSync(this.dst);
+        this.message = srcFiles;
+        for (const key in srcFiles) {
+          if (Object.hasOwnProperty.call(srcFiles, key)) {
+            const file = srcFiles[key];
+            if (this.mergeBy(this.mergeType, file, dstFiles[key])) {
+              fs.copyFile(path.join(this.src, key),
+                path.join(this.dst, key),
+                (e) => {
+                  this.doneFile += 1;
+                  this.percentage = 100 * this.doneFile / this.allFile;
+                  console.log(this.percentage);
+                  if (e) {
+                    console.log(e);
+                    errFiles.push(path.join(this.src, key));
+                  }
+                })
+            }
+          }
+        }
+      }
+    }
+  })
+</script>
+
+</html>

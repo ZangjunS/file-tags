@@ -8,14 +8,15 @@
   <!-- default-src 'self' style-src 'self' 'unsafe-inline'; -->
 
   <title>Hello fileTags</title>
+  <script src="../base/rendererLinkMain.js"></script>
   <script src="../base/electron-vue.js"></script>
   <script src="../base/element/index.js"></script>
   <link rel="stylesheet" href="../base/element/index.css">
-
+  
   <link rel="stylesheet" href="./renderer/js/video.js/dist/video-js.css">
   <link rel="stylesheet" href="./renderer/css/main.css">
   <script src="./renderer/tools.js"></script>
-  <script src="./renderer/rendererLinkMain.js"></script>
+
   <script src="./renderer/vue-renderer.js"></script>
 </head>
 
@@ -250,8 +251,8 @@
         localStorage.setItem("des", "des");
       };
 
-      // loadCfg
-      ipcRenderer.send("cfgLoaded", this.cfg);
+      // oncfg loaded
+      ipcRenderer.send("openVideoServer", this.cfg);
 
       console.log((new Date()).valueOf());
       // ipcListen

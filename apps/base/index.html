@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+  <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+  <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'  'unsafe-inline'" />
+  <!-- default-src 'self' style-src 'self' 'unsafe-inline'; -->
+
+  <title>Hello fileTags</title>
+  <script src="../base/rendererLinkMain.js"></script>
+  <script src="../base/electron-vue.js"></script>
+  <script src="../base/element/index.js"></script>
+  <link rel="stylesheet" href="../base/element/index.css">
+</head>
+
+<body>
+  <div id="app">
+    {{message}}
+  </div>
+</body>
+
+<script>
+  var app = new Vue({
+    el: '#app',
+    data: {
+      message: "hl"
+    },
+    computed: {
+
+    },
+    mounted() {
+
+    },
+    beforeDestroy() {
+
+    },
+    methods: {
+
+    }
+  })
+</script>
+
+</html>

@@ -92,7 +92,7 @@ function backLog(message) {
 var httpServer;
 var streamPort;
 
-ipcMain.on("cfgLoaded", (event, args) => {
+ipcMain.on("openVideoServer", (event, args) => {
   streamPort = args.port;
   httpServer = new VideoServer();
   httpServer.createServer(streamPort);
