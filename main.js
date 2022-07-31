@@ -34,6 +34,7 @@ function createWindow() {
   if (process.argv[1] == "-Fun") {
     app = process.argv[2];
   }
+  //  + app
   mainWindow.loadFile("apps/" + app + "/index.html");
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()

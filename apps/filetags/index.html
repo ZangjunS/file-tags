@@ -12,7 +12,7 @@
   <script src="../base/electron-vue.js"></script>
   <script src="../base/element/index.js"></script>
   <link rel="stylesheet" href="../base/element/index.css">
-  
+
   <link rel="stylesheet" href="./renderer/js/video.js/dist/video-js.css">
   <link rel="stylesheet" href="./renderer/css/main.css">
   <script src="./renderer/tools.js"></script>
@@ -51,6 +51,16 @@
             </el-button>
             <el-button slot="reference">收藏路径</el-button>
           </el-popover>
+          <el-dropdown>
+            <span class="el-dropdown-link">
+              <i class="el-icon-caret-bottom el-icon--right"></i>
+            </span>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item v-for="app in apps">
+                <el-link type="primary" :href="'../'+app.value">{{app.label}}</el-link>
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
         </div>
 
       </div>
@@ -106,8 +116,8 @@
               </el-table-column>
             </el-table>
           </div>
-          <el-pagination @current-change="handleCurrentChange" :current-page="page.now" :page-sizes="[500]"
-            :page-size="page.size" layout="total, sizes, prev, pager, next, jumper" :total="file.all.length">
+          <el-pagination @current-change="handleCurrentChange" :current-page="page.now" :page-sizes="[100,500]"
+            :page-size="page.size" layout="total, prev, pager, next" :total="file.all.length">
           </el-pagination>
         </div>
         <div id="fileActionWin" class="rightWin">
@@ -117,8 +127,9 @@
             <el-switch v-model="file.openPreview" active-text="预览"></el-switch>
           </div>
           <div id="tagWin">
-            <input class="miniStr" v-model="file.nowSelect.fileName"
-              @change="file.nowSelect.filePath = tagTools.renameFile(file.nowSelect.filePath,path.join(path.dirname(file.nowSelect.filePath), file.nowSelect.fileName));"></input>
+            <el-input v-model="file.nowSelect.fileName" size="mini"
+              @change="file.nowSelect.filePath = tagTools.renameFile(file.nowSelect.filePath,path.join(path.dirname(file.nowSelect.filePath), file.nowSelect.fileName));">
+            </el-input>
             <el-input v-model="file.tagInput" size="large" clearable placeholder="输入标签 空格分隔">
               <el-button slot="append" icon="el-icon-plus" @click="fileTagAdd(file.tagInput,true)"></el-button>
             </el-input>
@@ -170,6 +181,7 @@
   var app = new Vue({
     el: '#app',
     data: {
+      apps: apps,
       DateUtil: DateUtil,
       sys: sys,
       path: path,
@@ -201,7 +213,7 @@
       page: {
         now: 1,
         total: 0,
-        size: 500
+        size: 100
       },
       message: 'Hello Vue!',
       storeData: {
@@ -336,12 +348,13 @@
         ipcRenderer.send('removeOccupy', "");
       },
       async fileTagAdd(tag, force) {
+        this.getHisTagShowList("*");
         if (!force && this.tagTools.tagCache) {
           this.file.tagInput = this.file.tagInput + " " + tag;
           return;
         }
         this.removeOccupy();
-        var newTags = tag.split(" ");
+        var newTags = tag.replace("\[", "").replace("\]", "").split(" ");
         var tryTime = 3;
         var newFilePath = null;
         while (!newFilePath && (tryTime--)) {
@@ -361,7 +374,7 @@
           }
         });
         this.file.tagInput = "";
-        this.getHisTagShowList("*");
+        
       },
       fileTagDel(tag) {
         this.removeOccupy();

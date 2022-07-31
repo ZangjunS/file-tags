@@ -25,5 +25,18 @@ sys = {
     pathExe: process.execPath,
     path: path.dirname(process.execPath),
     simpleMode: false,
-    
+
 }
+apps = [{
+    value: 'filetags/index.html',
+    label: '标签管理器'
+}, {
+    value: 'unzip/index.html',
+    label: '批量解压'
+}, {
+    value: 'mergDirToMin/index.html',
+    label: '合并文件夹'
+},{
+    value: 'noname/index.html',
+    label: '无名杀' 
+}]
