@@ -1,476 +1,481 @@
 <!DOCTYPE html>
 <html>
 
-<head>
-  <meta charset="UTF-8" />
-  <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-  <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'  'unsafe-inline'" />
-  <!-- default-src 'self' style-src 'self' 'unsafe-inline'; -->
+    <head>
+        <meta
+        charset="UTF-8"/>
+        <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+        <meta
+        http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'  'unsafe-inline'"/>
+        <!-- default-src 'self' style-src 'self' 'unsafe-inline'; -->
 
-  <title>Hello fileTags</title>
-  <script src="../base/rendererLinkMain.js"></script>
-  <script src="../base/electron-vue.js"></script>
-  <script src="../base/element/index.js"></script>
-  <link rel="stylesheet" href="../base/element/index.css">
+        <title>Hello fileTags</title>
+        <script src="../base/rendererLinkMain.js"></script>
+        <script src="../base/electron-vue.js"></script>
+        <script src="../base/element/index.js"></script>
+        <link rel="stylesheet" href="../base/element/index.css">
 
-  <link rel="stylesheet" href="./renderer/js/video.js/dist/video-js.css">
-  <link rel="stylesheet" href="./renderer/css/main.css">
-  <script src="./renderer/tools.js"></script>
+        <link rel="stylesheet" href="./renderer/js/video.js/dist/video-js.css">
+        <link rel="stylesheet" href="./renderer/css/main.css">
+        <script src="./renderer/tools.js"></script>
 
-  <script src="./renderer/vue-renderer.js"></script>
-</head>
+        <script src="./renderer/vue-renderer.js"></script>
+    </head>
 
-<body>
-  <div id="app">
-    <div @click.middle="nextRow()">
-      <div class="contentWin searchWin ">
-        <el-input v-if="!sys.simpleMode" v-model="search.val" size="large" clearable placeholder="请输入内容"
-          class="leftWin upWin">
-          <el-button ref="searchBtn" slot="append" icon="el-icon-search" @click="doSearch"></el-button>
-          <!-- <i slot="suffix" class="el-input__icon el-icon-search"></i> -->
-        </el-input>
-        <div class="rightWin upWin">
-          <el-popover placement="bottom" title="设置" trigger="click">
-            <div style="margin-left: 10px;margin-right: 10px;">
-              <el-switch v-model="search.withPath" active-text="路径下搜索" style="display: block;"></el-switch>
-              <el-switch v-model="search.searchOneLayer" active-text="只搜索一层" style="display: block;"></el-switch>
-              <el-switch v-model="sys.simpleMode" @change="changeMode()" active-text="简洁模式"></el-switch>
-            </div>
-            <el-button slot="reference">设置</el-button>
-          </el-popover>
+    <body>
+        <div id="app">
+            <div @click.middle="nextRow()">
+                <div class="contentWin searchWin ">
+                    <el-input v-if="!sys.simpleMode" v-model="search.val" size="large" clearable placeholder="请输入内容" class="leftWin upWin">
+                        <el-button ref="searchBtn" slot="append" icon="el-icon-search" @click="doSearch"></el-button>
+                        <!-- <i slot="suffix" class="el-input__icon el-icon-search"></i> -->
+                    </el-input>
+                    <div class="rightWin upWin">
+                        <el-popover placement="bottom" title="设置" trigger="click">
+                            <div style="margin-left: 10px;margin-right: 10px;">
+                                <el-switch v-model="search.withPath" active-text="路径下搜索" style="display: block;"></el-switch>
+                                <el-switch v-model="search.searchOneLayer" active-text="只搜索一层" style="display: block;"></el-switch>
+                                <el-switch v-model="sys.simpleMode" @change="changeMode()" active-text="简洁模式"></el-switch>
+                            </div>
+                            <el-button slot="reference">设置</el-button>
+                        </el-popover>
 
-          <el-popover placement="bottom" title="收藏路径" trigger="click">
-            <div v-for="dir in this.storeData.archivePath" style="font-size: 20px;">
-              <i @click="archivePathDel(dir)" class="el-icon-remove"></i>
-              <div @click='search.val=`"${dir}"`;$refs.searchBtn.$el.click()' style="display: inline; width: 100%; ">
-                {{dir}}
-              </div>
-              <el-divider></el-divider>
-            </div>
-            <el-button @click="archivePathAdd()" type="success" icon="el-icon-plus" circle>
-            </el-button>
-            <el-button slot="reference">收藏路径</el-button>
-          </el-popover>
-          <el-dropdown>
-            <span class="el-dropdown-link">
-              <i class="el-icon-caret-bottom el-icon--right"></i>
-            </span>
-            <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item v-for="app in apps">
-                <el-link type="primary" :href="'../'+app.value">{{app.label}}</el-link>
-              </el-dropdown-item>
-            </el-dropdown-menu>
-          </el-dropdown>
-        </div>
-
-      </div>
-      <div class="contentWin">
-        <div id="fileShowWin" class="leftWin" v-if="!sys.simpleMode">
-          <div id="fileViewWin" v-if="file.openPreview" class="borderd" v-for="(pfilePath) of 1">
-            {{void (pfilePath=file.nowSelect.filePath )}}
-            <div v-if="pfilePath!=null" v-for="(pfileType) of 1">
-              {{void (pfileType=file.nowSelect.preivewType )}}
-              <div v-if="pfileType =='txt'">
-                <iframe :src="pfilePath" class="previewer" style="width: 100%;"></iframe>
-              </div>
-              <div v-if="pfileType =='img'">
-                <el-image :src="pfilePath" :fit="'contain'" :preview-src-list="[pfilePath]" class="previewer">
-                </el-image>
-              </div>
-              <div v-if="pfileType =='vid'">
-                <div id="video-container" style="background-color: black;" class="previewer">
-                  <video id="vidWin" class="previewer">
-                    <source src="127.0.0.1">
-                  </video>
-                </div>
-              </div>
-            </div>
-          </div>
-          <!-- row-click -->
-          <div id="fileListWin">
-            <el-table ref="fileListTable" :data="file.all.slice((page.now-1)*page.size,page.now*page.size)"
-              highlight-current-row border @current-change="onSelectFile" :row-class-name="'list-row'"
-              style="width: 100%">
-              <el-table-column type="index" width="50">
-              </el-table-column>
-              <el-table-column property="fileName" label="文件名" sortable>
-                <template slot-scope="scope">
-                  <span @click="openFile(scope.row.filePath)">
-                    {{scope.row.fileName }}
-                  </span>
-                </template>
-              </el-table-column>
-
-              <el-table-column width="100">
-                <template slot="header" slot-scope="scope"> 操作 </template>
-                <template slot-scope="scope">
-                  <el-tooltip class="item" effect="dark" placement="left" :enterable="false">
-                    <div slot="content" style="max-width: 300px;">
-                      {{scope.row.filePath}}
+                        <el-popover placement="bottom" title="收藏路径" trigger="click">
+                            <div v-for="dir in this.storeData.archivePath" style="font-size: 20px;">
+                                <i @click="archivePathDel(dir)" class="el-icon-remove"></i>
+                                <div @click='search.val=`"${dir}"`;$refs.searchBtn.$el.click()' style="display: inline; width: 100%; ">
+                                    {{dir}}
+                                </div>
+                                <el-divider></el-divider>
+                            </div>
+                            <el-button @click="archivePathAdd()" type="success" icon="el-icon-plus" circle></el-button>
+                            <el-button slot="reference">收藏路径</el-button>
+                        </el-popover>
+                        <el-dropdown>
+                            <span class="el-dropdown-link">
+                                <i class="el-icon-caret-bottom el-icon--right"></i>
+                            </span>
+                            <el-dropdown-menu slot="dropdown">
+                                <el-dropdown-item v-for="app in apps">
+                                    <el-link type="primary" :href="'../'+app.value">{{app.label}}</el-link>
+                                </el-dropdown-item>
+                            </el-dropdown-menu>
+                        </el-dropdown>
                     </div>
-                    <el-button @click="showItemInFolder(scope.$index, scope.row)" icon=" el-icon-folder-opened"
-                      size="small">
-                    </el-button>
-                  </el-tooltip>
-                </template>
-              </el-table-column>
-            </el-table>
-          </div>
-          <el-pagination @current-change="handleCurrentChange" :current-page="page.now" :page-sizes="[100,500]"
-            :page-size="page.size" layout="total, prev, pager, next" :total="file.all.length">
-          </el-pagination>
-        </div>
-        <div id="fileActionWin" class="rightWin">
-          <div class="flexRowCenter switchsLine">
-            <el-switch v-model="tagTools.tagOnHead" active-text="标签前置"></el-switch>
-            <el-switch v-model="tagTools.tagCache" active-text="标签缓存"></el-switch>
-            <el-switch v-model="file.openPreview" active-text="预览"></el-switch>
-          </div>
-          <div id="tagWin">
-            <el-input v-model="file.nowSelect.fileName" size="mini"
-              @change="file.nowSelect.filePath = tagTools.renameFile(file.nowSelect.filePath,path.join(path.dirname(file.nowSelect.filePath), file.nowSelect.fileName));">
-            </el-input>
-            <el-input v-model="file.tagInput" size="large" clearable placeholder="输入标签 空格分隔">
-              <el-button slot="append" icon="el-icon-plus" @click="fileTagAdd(file.tagInput,true)"></el-button>
-            </el-input>
-            <div class="tagTitle">文件标签</div>
-            <div class="tagGroup">
-              <el-tag v-for="tag in nowFileTags" :disable-transitions="true" size="mini" closable
-                @close="fileTagDel(tag)" type="success">
-                {{tag}}
-              </el-tag>
-            </div>
-            <div class="tagTitle">固定标签</div>
-            <div class="tagGroup">
-              <el-tag v-for="tag in tagTools.staticTags" @click="fileTagAdd(tag)" type="success">{{tag}}</el-tag>
-              <el-tag @click="storeData.hisAddTags.ignoreVals.push(DateUtil.nowDay());fileTagAdd(DateUtil.nowDay())"
-                type="success">
-                日期</el-tag>
-            </div>
-            <div class="tagTitle"> 历史标签
-              <el-popover placement="bottom" width="200" trigger="click">
-                <div>
-                  <el-button @click="changeHisTags()" size="small">
-                    切换历史标签
-                  </el-button>
-                  <el-input type="textarea" :rows="20" placeholder="请输入内容" v-model="tagCounts">
-                  </el-input>
+
                 </div>
-                <i slot="reference" class="el-icon-question"></i>
-              </el-popover>
+                <div class="contentWin">
+                    <div id="fileShowWin" class="leftWin" v-if="!sys.simpleMode">
+                        <div id="fileViewWin" v-if="file.openPreview" class="borderd" v-for="(pfilePath) of 1">
+                            {{void (pfilePath=file.nowSelect.filePath )}}
+                            <div v-if="pfilePath!=null" v-for="(pfileType) of 1">
+                                {{void (pfileType=file.nowSelect.preivewType )}}
+                                <div v-if="pfileType =='txt'">
+                                    <iframe :src="pfilePath" class="previewer" style="width: 100%;"></iframe>
+                                </div>
+                                <div v-if="pfileType =='img'">
+                                    <el-image :src="pfilePath" :fit="'contain'" :preview-src-list="[pfilePath]" class="previewer"></el-image>
+                                </div>
+                                <div v-if="pfileType =='vid'">
+                                    <div id="video-container" style="background-color: black;" class="previewer">
+                                        <video id="vidWin" class="previewer">
+                                            <source src="127.0.0.1">
+                                        </video>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- row-click -->
+                        <div id="fileListWin">
+                            <el-table ref="fileListTable" :data="file.all.slice((page.now-1)*page.size,page.now*page.size)" highlight-current-row border @current-change="onSelectFile" :row-class-name="'list-row'" style="width: 100%">
+                                <el-table-column type="index" width="50"></el-table-column>
+                                <el-table-column property="fileName" label="文件名" sortable>
+                                    <template slot-scope="scope">
+                                        <span @click="openFile(scope.row.filePath)">
+                                            {{scope.row.fileName }}
+                                        </span>
+                                    </template>
+                                </el-table-column>
+
+                                <el-table-column width="100">
+                                    <template slot="header" slot-scope="scope">
+                                        操作
+                                    </template>
+                                    <template slot-scope="scope">
+                                        <el-tooltip class="item" effect="dark" placement="left" :enterable="false">
+                                            <div slot="content" style="max-width: 300px;">
+                                                {{scope.row.filePath}}
+                                            </div>
+                                            <el-button @click="showItemInFolder(scope.$index, scope.row)" icon=" el-icon-folder-opened" size="small"></el-button>
+                                        </el-tooltip>
+                                    </template>
+                                </el-table-column>
+                            </el-table>
+                        </div>
+                        <el-pagination @current-change="handleCurrentChange" :current-page="page.now" :page-sizes="[100,500]" :page-size="page.size" layout="total, prev, pager, next" :total="file.all.length"></el-pagination>
+                    </div>
+                    <div id="fileActionWin" class="rightWin">
+                        <div class="flexRowCenter switchsLine">
+                            <el-switch v-model="tagTools.tagOnHead" active-text="标签前置"></el-switch>
+                            <el-switch v-model="tagTools.tagCache" active-text="标签缓存"></el-switch>
+                            <el-switch v-model="file.openPreview" active-text="预览"></el-switch>
+                        </div>
+                        <div id="tagWin">
+                            <el-input v-model="file.nowSelect.fileName" size="mini" @change="file.nowSelect.filePath = tagTools.renameFile(file.nowSelect.filePath,path.join(path.dirname(file.nowSelect.filePath), file.nowSelect.fileName));"></el-input>
+                            <el-input v-model="file.tagInput" size="large" clearable placeholder="输入标签 空格分隔">
+                                <el-button slot="append" icon="el-icon-plus" @click="fileTagAdd(file.tagInput,true)"></el-button>
+                            </el-input>
+                            <div class="tagTitle">文件标签</div>
+                            <div class="tagGroup">
+                                <el-tag v-for="tag in nowFileTags" :disable-transitions="true" size="mini" closable @close="fileTagDel(tag)" type="success">
+                                    {{tag}}
+                                </el-tag>
+                            </div>
+                            <div class="tagTitle">固定标签</div>
+                            <div class="tagGroup">
+                                <el-tag v-for="tag in tagTools.staticTags" @click="fileTagAdd(tag)" type="success">{{tag}}</el-tag>
+                                <el-tag @click="storeData.hisAddTags.ignoreVals.push(DateUtil.nowDay());fileTagAdd(DateUtil.nowDay())" type="success">
+                                    日期</el-tag>
+                            </div>
+                            <div class="tagTitle">
+                                历史标签
+                                <el-popover placement="bottom" width="200" trigger="click">
+                                    <div>
+                                        <el-button @click="changeHisTags()" size="small">
+                                            切换历史标签
+                                        </el-button>
+                                        <el-input type="textarea" :rows="20" placeholder="请输入内容" v-model="tagCounts"></el-input>
+                                    </div>
+                                    <i slot="reference" class="el-icon-question"></i>
+                                </el-popover>
+                            </div>
+                            <el-button-group>
+                                <el-button v-for="w in  tagTools.headWord" @click="getHisTagShowList(w)" size="small" round class="word">
+                                    {{w}}
+                                </el-button>
+                            </el-button-group>
+                            <div id="buttomTagGroup" class="tagGroup">
+                                <el-tag v-for="tag in storeData.hisTagShowList" @click="fileTagAdd(tag)" type="success" effect="dark">
+                                    {{tag}}
+                                </el-tag>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <el-button-group>
-              <el-button v-for="w in  tagTools.headWord" @click="getHisTagShowList(w)" size="small" round class="word">
-                {{w}}
-              </el-button>
-            </el-button-group>
-            <div id="buttomTagGroup" class="tagGroup">
-              <el-tag v-for="tag in storeData.hisTagShowList" @click="fileTagAdd(tag)" type="success" effect="dark">
-                {{tag}}
-              </el-tag>
-            </div>
-          </div>
         </div>
-      </div>
-    </div>
-  </div>
-</body>
-<script type="module" src="./renderer/js/video.js/dist/video.js"></script>
-<script type="module" src="./renderer/js/StreamPlayTech.js"></script>
-<script>
-  var app = new Vue({
-    el: '#app',
-    data: {
-      apps: apps,
-      DateUtil: DateUtil,
-      sys: sys,
-      path: path,
-      cfg: {
-        port: 10010
-      },
-      search: {
-        withPath: true,
-        searchOneLayer: false,
-        val: "",
-      },
-      tagTools: tagTools,
-      file: {
-        type: {
-          txt: ".txt.html.bat.md.bas.prg.cmd.log",
-          img: ".bmp.jpg.png.tif.gif.pcx.tga.exif.fpx.svg.psd.cdr.pcd.dxf.ufo.eps.ai.raw.wmf.webp.apng",
-          vid: ".wmv.avi.dat.asf.mpeg.mpg.rm.rmvb.ram.flv.mp4.3gp.mov.divx.dv.vob.mkv.qt.cpk.fli.flc.f4v.m4v.mod.m2t.swf.webm.mts.m2ts.3g2.mpe.ts.div.lavf.dirac"
-        },
-        tagInput: "",
-        openPreview: true,
-        all: [],
-        detectedFile: "",
-        nowSelect: {
-          filePath: "",
-          fileName: "",
-          tags: []
-        }
-      },
-      page: {
-        now: 1,
-        total: 0,
-        size: 100
-      },
-      message: 'Hello Vue!',
-      storeData: {
-        archivePath: [],
-        hisAddTags: {},
-        hisAddTags2: {},
-        hisTagShowList: [{}],
+    </body>
+    <script type="module" src="./renderer/js/video.js/dist/video.js"></script>
+    <script type="module" src="./renderer/js/StreamPlayTech.js"></script>
+    <script>
+        var app = new Vue({
+            el: '#app',
+            data: {
+                apps: apps,
+                DateUtil: DateUtil,
+                sys: sys,
+                path: path,
+                fs: fs,
+                cfg: {
+                    port: 10010
+                },
+                search: {
+                    withPath: true,
+                    searchOneLayer: false,
+                    val: ""
+                },
+                tagTools: tagTools,
+                file: {
+                    type: {
+                        txt: ".txt.html.bat.md.bas.prg.cmd.log",
+                        img: ".bmp.jpg.png.tif.gif.pcx.tga.exif.fpx.svg.psd.cdr.pcd.dxf.ufo.eps.ai.raw.wmf.webp.apng",
+                        vid: ".wmv.avi.dat.asf.mpeg.mpg.rm.rmvb.ram.flv.mp4.3gp.mov.divx.dv.vob.mkv.qt.cpk.fli.flc.f4v.m4v.mod.m2t.swf.webm.mts.m2ts.3g2.mpe.ts.div.lavf.dirac"
+                    },
+                    tagInput: "",
+                    openPreview: true,
+                    all: [],
+                    detectedFile: "",
+                    nowSelect: {
+                        filePath: "",
+                        fileName: "",
+                        tags: []
+                    }
+                },
+                page: {
+                    now: 1,
+                    total: 0,
+                    size: 100
+                },
+                message: 'Hello Vue!',
+                storeData: {
+                    archivePath: [],
+                    hisAddTags: {},
+                    hisAddTags2: {},
+                    hisTagShowList: [{}]
 
-      },
+                }
 
-    },
-    computed: {
-      nowFileTags() {
-        try {
-          return tagTools.getTags(this.file.nowSelect.fileName);
-        } catch (error) {
-          return []
-        }
-      },
-      tagCounts: {
-        get() {
-          return JSON.stringify(this.storeData.hisAddTags.countMap);
-        },
-        set(val) {
-          this.storeData.hisAddTags.countMap = JSON.parse(val);
-          console.log(val);
-        }
-      },
-    },
-    mounted() {
-      this.search.val = this.sys.cmdArgs[1]
-      if (this.sys.cmdArgs[1] == "M1") {
-        this.sys.simpleMode = true;
-        this.changeMode();
-      }
-      console.log((new Date()).valueOf());
-      var his = Object.assign({}, JSON.parse(localStorage.getItem("hisAddTags")));
-      this.storeData.hisAddTags = new CounterSortList(his, this.tagTools.staticTags);
-      var his2 = Object.assign({}, JSON.parse(localStorage.getItem("hisAddTags2")));
-      this.storeData.hisAddTags2 = new CounterSortList(his2, this.tagTools.staticTags);
-      this.storeData.archivePath = Object.assign([], JSON.parse(localStorage.getItem("archivePath")));
-      this.getHisTagShowList("*");
-      window.onunload = () => {
-        localStorage.setItem("hisAddTags", JSON.stringify(this.storeData.hisAddTags.countMap));
-        localStorage.setItem("hisAddTags2", JSON.stringify(this.storeData.hisAddTags2.countMap));
-        localStorage.setItem("archivePath", JSON.stringify(this.storeData.archivePath));
-        localStorage.setItem("des", "des");
-      };
+            },
+            computed: {
+                nowFileTags() {
+                    try {
+                        return tagTools.getTags(this.file.nowSelect.fileName);
+                    } catch (error) {
+                        return []
+                    }
+                },
+                tagCounts: {
+                    get() {
+                        return JSON.stringify(this.storeData.hisAddTags.countMap);
+                    },
+                    set(val) {
+                        this.storeData.hisAddTags.countMap = JSON.parse(val);
+                        console.log(val);
+                    }
+                }
+            },
+            mounted() {
+                this.search.val = this.sys.cmdArgs[1]
+                if (this.sys.cmdArgs[1] == "M1") {
+                    this.sys.simpleMode = true;
+                    this.changeMode();
+                }
+                console.log((new Date()).valueOf());
+                var his = Object.assign({}, JSON.parse(localStorage.getItem("hisAddTags")));
+                this.storeData.hisAddTags = new CounterSortList(his, this.tagTools.staticTags);
+                var his2 = Object.assign({}, JSON.parse(localStorage.getItem("hisAddTags2")));
+                this.storeData.hisAddTags2 = new CounterSortList(his2, this.tagTools.staticTags);
+                this.storeData.archivePath = Object.assign([], JSON.parse(localStorage.getItem("archivePath")));
+                this.getHisTagShowList("*");
+                window.onunload = () => {
+                    var saveDatas = {
+                        hisAddTags: this.storeData.hisAddTags.countMap,
+                        hisAddTags2: this.storeData.hisAddTags2.countMap,
+                        archivePath: this.storeData.archivePath,
+                        des: ""
+                    }
+                    this.fs.writeFile(this.sys.path + "\\resources\\app\\saveDatas.json", JSON.stringify(saveDatas), {
+                        'flag': 'a'
+                    }, function (err) {
+                        if (err) {
+                            throw err;
+                        }
+                    })
+                    localStorage.setItem("hisAddTags", JSON.stringify(this.storeData.hisAddTags.countMap));
+                    localStorage.setItem("hisAddTags2", JSON.stringify(this.storeData.hisAddTags2.countMap));
+                    localStorage.setItem("archivePath", JSON.stringify(this.storeData.archivePath));
+                    localStorage.setItem("des", "des");
+                };
 
-      // oncfg loaded
-      ipcRenderer.send("openVideoServer", this.cfg);
+                // oncfg loaded
+                ipcRenderer.send("openVideoServer", this.cfg);
 
-      console.log((new Date()).valueOf());
-      // ipcListen
-      ipcRenderer.on("retAdir", (event, path) => {
-        this.storeData.archivePath.push(path);
-      });
-      ipcRenderer.on("backLog", (event, message) => {
-        console.log(message);
-      });
-      ipcRenderer.on('retVideoInfo', (event, message) => {
-        console.log('retVideoInfo:', message)
-        this.playVideo(message);
-      })
+                console.log((new Date()).valueOf());
+                // ipcListen
+                ipcRenderer.on("retAdir", (event, path) => {
+                    this.storeData.archivePath.push(path);
+                });
+                ipcRenderer.on("backLog", (event, message) => {
+                    console.log(message);
+                });
+                ipcRenderer.on('retVideoInfo', (event, message) => {
+                    console.log('retVideoInfo:', message)
+                    this.playVideo(message);
+                })
 
-      document.onkeydown = (e) => {
-        //事件对象兼容
-        let e1 = e || event || window.event || arguments.callee.caller.arguments[0]
-        //键盘按键判断:左箭头-37;上箭头-38；右箭头-39;下箭头-40
-        if (e1 && e1.keyCode == 39) {
-          console.log('next')
-          this.nextRow()
-        }
-      }
-      messager = this.$message;
-      // this.$message("hello")
-    },
-    beforeDestroy() {
+                document.onkeydown = (e) => { // 事件对象兼容
+                    let e1 = e || event || window.event || arguments.callee.caller.arguments[0]
+                    // 键盘按键判断:左箭头-37;上箭头-38；右箭头-39;下箭头-40
+                    if (e1 && e1.keyCode == 39) {
+                        console.log('next')
+                        this.nextRow()
+                    }
+                }
+                messager = this.$message;
+                // this.$message("hello")
+            },
+            beforeDestroy() {},
+            methods: {
+                changeHisTags() {
+                    var t = this.storeData.hisAddTags;
+                    this.storeData.hisAddTags = this.storeData.hisAddTags2;
+                    this.storeData.hisAddTags2 = t;
+                    this.getHisTagShowList("*");
+                },
+                changeMode() {
+                    if (this.sys.simpleMode) {
+                        this.sys.detectInterval = setInterval(this.detectFile, 500);
+                        this.file.nowSelect.filePath = "";
+                        remote.getCurrentWindow().setSize(380, 800);
+                        remote.getCurrentWindow().setAlwaysOnTop(true);
+                    } else {
+                        clearInterval(this.sys.detectInterval);
+                        remote.getCurrentWindow().setSize(850, 800);
+                        remote.getCurrentWindow().setAlwaysOnTop(false);
+                    }
+                },
+                detectFile() {
+                    var spath = FileDetecter.detectFile();
+                    if (spath != "NNNNN" && this.file.detectedFile != spath) {
+                        this.file.nowSelect.filePath = spath;
+                        this.file.nowSelect.fileName = path.basename(spath);
+                        this.file.detectedFile = spath;
+                    }
+                },
+                getHisTagShowList(word) {
+                    this.storeData.hisTagShowList = this.storeData.hisAddTags.getTop(word);
+                },
+                async doSearch() {
+                    var fileList = await FileDetecter.esSearch(this.search);
+                    console.log(fileList);
+                    var rowIdx = 0;
+                    this.file.all = fileList.map((filePath, idx) => {
+                        return {
+                            index: rowIdx++,
+                            fileName: path.basename(filePath),
+                            filePath: filePath
+                        };
+                    });
+                    this.page.now = 1;
+                },
+                removeOccupy() {
+                    try {
+                        document.getElementById("video-container").innerHTML = "";
+                        videojs.players.vidWin.dispose();
+                    } catch (error) {}
+                    ipcRenderer.send('removeOccupy', "");
+                },
+                async fileTagAdd(tag, force) {
+                    this.getHisTagShowList("*");
+                    if (!force && this.tagTools.tagCache) {
+                        this.file.tagInput = this.file.tagInput + " " + tag;
+                        return;
+                    }
+                    this.removeOccupy();
+                    var newTags = tag.replace("\[", "").replace("\]", "").split(" ");
+                    var tryTime = 3;
+                    var newFilePath = null;
+                    while (! newFilePath && (tryTime--)) {
+                        newFilePath = tagTools.addTagsToFile(this.file.nowSelect.filePath, newTags);
+                        await sleep(50)
+                    }
+                    if (newFilePath == null) {
+                        this.$message(`重命名${
+                            this.file.nowSelect.filePath
+                        }出错...`)
+                        return
+                    }
+                    this.file.nowSelect.filePath = newFilePath;
+                    this.file.nowSelect.fileName = path.basename(newFilePath);
 
-    },
-    methods: {
-      changeHisTags() {
-        var t = this.storeData.hisAddTags;
-        this.storeData.hisAddTags = this.storeData.hisAddTags2;
-        this.storeData.hisAddTags2 = t;
-        this.getHisTagShowList("*");
-      },
-      changeMode() {
-        if (this.sys.simpleMode) {
-          this.sys.detectInterval = setInterval(this.detectFile, 1000);
-          this.file.nowSelect.filePath = "";
-          remote.getCurrentWindow().setSize(380, 800);
-          remote.getCurrentWindow().setAlwaysOnTop(true);
-        } else {
-          clearInterval(this.sys.detectInterval);
-          remote.getCurrentWindow().setSize(850, 800);
-          remote.getCurrentWindow().setAlwaysOnTop(false);
-        }
-      },
-      detectFile() {
-        var spath = FileDetecter.detectFile();
-        if (spath != "NNNNN" && this.file.detectedFile != spath) {
-          this.file.nowSelect.filePath = spath;
-          this.file.nowSelect.fileName = path.basename(spath);
-          this.file.detectedFile = spath;
-        }
-      },
-      getHisTagShowList(word) {
-        this.storeData.hisTagShowList = this.storeData.hisAddTags.getTop(word);
-      },
-      async doSearch() {
-        var fileList = await FileDetecter.esSearch(this.search);
-        console.log(fileList);
-        var rowIdx = 0;
-        this.file.all =
-          fileList.map((filePath, idx) => {
-            return {
-              index: rowIdx++,
-              fileName: path.basename(filePath),
-              filePath: filePath,
-            };
-          });
-        this.page.now = 1;
-      },
-      removeOccupy() {
-        try {
-          document.getElementById("video-container").innerHTML = "";
-          videojs.players.vidWin.dispose();
-        } catch (error) {
+                    newTags.forEach((t) => {
+                        if (tagTools.strNotEmpty(t)) {
+                            this.storeData.hisAddTags.put(t);
+                        }
+                    });
+                    this.file.tagInput = "";
 
-        }
-        ipcRenderer.send('removeOccupy', "");
-      },
-      async fileTagAdd(tag, force) {
-        this.getHisTagShowList("*");
-        if (!force && this.tagTools.tagCache) {
-          this.file.tagInput = this.file.tagInput + " " + tag;
-          return;
-        }
-        this.removeOccupy();
-        var newTags = tag.replace("\[", "").replace("\]", "").split(" ");
-        var tryTime = 3;
-        var newFilePath = null;
-        while (!newFilePath && (tryTime--)) {
-          newFilePath = tagTools.addTagsToFile(this.file.nowSelect.filePath, newTags);
-          await sleep(50)
-        }
-        if (newFilePath == null) {
-          this.$message(`重命名${this.file.nowSelect.filePath}出错...`)
-          return
-        }
-        this.file.nowSelect.filePath = newFilePath;
-        this.file.nowSelect.fileName = path.basename(newFilePath);
+                },
+                fileTagDel(tag) {
+                    this.removeOccupy();
+                    var newFilePath = tagTools.delTagsToFile(this.file.nowSelect.filePath, [tag]);
+                    if (newFilePath == null) {
+                        return
+                    }
+                    this.file.nowSelect.filePath = newFilePath;
+                    this.file.nowSelect.fileName = path.basename(newFilePath);
+                },
 
-        newTags.forEach((t) => {
-          if (tagTools.strNotEmpty(t)) {
-            this.storeData.hisAddTags.put(t);
-          }
-        });
-        this.file.tagInput = "";
-        
-      },
-      fileTagDel(tag) {
-        this.removeOccupy();
-        var newFilePath = tagTools.delTagsToFile(this.file.nowSelect.filePath, [tag]);
-        if (newFilePath == null) {
-          return
-        }
-        this.file.nowSelect.filePath = newFilePath;
-        this.file.nowSelect.fileName = path.basename(newFilePath);
-      },
-
-      onSelectFile(file) {
-        console.log(file);
-        if (file == null) {
-          file = {}
-        }
-        this.file.nowSelect = file;
-        this.preViewPrepare();
-      },
-      nextRow() {
-        this.$refs.fileListTable.setCurrentRow(this.file.all[this.file.nowSelect.index + 1]);
-        document.getElementsByClassName("current-row")[0].scrollIntoView();
-      },
-      preViewPrepare() {
-        pfileSuffix = path.extname(this.file.nowSelect.filePath).toLowerCase();
-        if (this.file.type.txt.includes(pfileSuffix)) {
-          this.file.nowSelect.preivewType = "txt";
-        }
-        if (this.file.type.img.includes(pfileSuffix)) {
-          this.file.nowSelect.preivewType = "img";
-        }
-        if (this.file.type.vid.includes(pfileSuffix)) {
-          this.file.nowSelect.preivewType = "vid";
-          ipcRenderer.send('getVideoInfo', this.file.nowSelect.filePath);
-        }
-      },
-      playVideo(message) {
-        var _vue = this;
-        let vid = document.getElementById("vidWin");
-        if (vid) {
-          videojs(vid).dispose();
-        }
-        var playcfg = {};
-        var videoSource = "";
-        if (message.fileType == ".mp4" && message.videoCodecSupport) {
-          videoSource = message.videoSource.replace('#', '%23');
-        } else {
-          videoSource = //&startTime=${message.duration/3}
-            `http://127.0.0.1:${this.cfg.port}?vPath=${encodeURIComponent(message.videoSource)}&startTime=${message.duration/4}`;
-          playcfg = {
-            autoplay: true,
-            techOrder: ['StreamPlay'],
-            StreamPlay: {
-              src: videoSource,
-              duration: message.duration
+                onSelectFile(file) {
+                    console.log(file);
+                    if (file == null) {
+                        file = {}
+                    }
+                    this.file.nowSelect = file;
+                    this.preViewPrepare();
+                },
+                nextRow() {
+                    this.$refs.fileListTable.setCurrentRow(this.file.all[this.file.nowSelect.index + 1]);
+                    document.getElementsByClassName("current-row")[0].scrollIntoView();
+                },
+                preViewPrepare() {
+                    pfileSuffix = path.extname(this.file.nowSelect.filePath).toLowerCase();
+                    if (this.file.type.txt.includes(pfileSuffix)) {
+                        this.file.nowSelect.preivewType = "txt";
+                    }
+                    if (this.file.type.img.includes(pfileSuffix)) {
+                        this.file.nowSelect.preivewType = "img";
+                    }
+                    if (this.file.type.vid.includes(pfileSuffix)) {
+                        this.file.nowSelect.preivewType = "vid";
+                        ipcRenderer.send('getVideoInfo', this.file.nowSelect.filePath);
+                    }
+                },
+                playVideo(message) {
+                    var _vue = this;
+                    let vid = document.getElementById("vidWin");
+                    if (vid) {
+                        videojs(vid).dispose();
+                    }
+                    var playcfg = {};
+                    var videoSource = "";
+                    if (message.fileType == ".mp4" && message.videoCodecSupport) {
+                        videoSource = message.videoSource.replace('#', '%23');
+                    } else {
+                        videoSource = // &startTime=${message.duration/3}
+                        `http://127.0.0.1:${
+                            this.cfg.port
+                        }?vPath=${
+                            encodeURIComponent(message.videoSource)
+                        }&startTime=${
+                            message.duration / 4
+                        }`;
+                        playcfg = {
+                            autoplay: true,
+                            techOrder: ['StreamPlay'],
+                            StreamPlay: {
+                                src: videoSource,
+                                duration: message.duration
+                            }
+                        }
+                    } vid = createVideoHtml("video-container", "vidWin", videoSource);
+                    player = videojs(vid, playcfg, function () {
+                        console.log("playerdone");
+                        this.on('error', () => {
+                            _vue.openFile(message.videoSource);
+                            // _vue.playVideo(message)
+                        })
+                        player.play()
+                        // player.currentTime(message.duration / 3)
+                    });
+                },
+                // 当前页改变时触发 跳转其他页,并选中第一行
+                handleCurrentChange(val) {
+                    console.log(`当前页: ${val}`);
+                    this.page.now = val;
+                    // setCurrentRow toggleRowSelection
+                    var theFirst = this.file.all[(this.page.now - 1) * this.page.size];
+                    this.$refs.fileListTable.setCurrentRow(theFirst);
+                    setTimeout(() => {
+                        document.getElementsByClassName("current-row")[0].scrollIntoView();
+                    }, 100)
+                },
+                openFile(filePath) {
+                    shell.openPath(filePath);
+                },
+                showItemInFolder(index, row) {
+                    shell.showItemInFolder(row.filePath);
+                },
+                archivePathAdd() {
+                    ipcRenderer.send("wantAdir", "hello");
+                },
+                archivePathDel(dir) {
+                    this.storeData.archivePath = this.storeData.archivePath.filter((e) => {
+                        return e != dir;
+                    })
+                }
             }
-          }
-        }
-        vid = createVideoHtml("video-container", "vidWin", videoSource);
-        player = videojs(vid, playcfg, function () {
-          console.log("playerdone");
-          this.on('error', () => {
-            _vue.openFile(message.videoSource);
-            // _vue.playVideo(message)
-          })
-          player.play()
-          // player.currentTime(message.duration / 3)
-        });
-      },
-      //当前页改变时触发 跳转其他页,并选中第一行
-      handleCurrentChange(val) {
-        console.log(`当前页: ${val}`);
-        this.page.now = val;
-        // setCurrentRow toggleRowSelection
-        var theFirst = this.file.all[(this.page.now - 1) * this.page.size];
-        this.$refs.fileListTable.setCurrentRow(theFirst);
-        setTimeout(() => {
-          document.getElementsByClassName("current-row")[0].scrollIntoView();
-        }, 100)
-      },
-      openFile(filePath) {
-        shell.openPath(filePath);
-      },
-      showItemInFolder(index, row) {
-        shell.showItemInFolder(row.filePath);
-      },
-      archivePathAdd() {
-        ipcRenderer.send("wantAdir", "hello");
-      },
-      archivePathDel(dir) {
-        this.storeData.archivePath = this.storeData.archivePath.filter((e) => {
-          return e != dir;
         })
-      }
-    }
-  })
-</script>
+    </script>
 
 </html>
