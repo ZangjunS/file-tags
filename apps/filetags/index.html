@@ -254,9 +254,11 @@
                         archivePath: this.storeData.archivePath,
                         des: ""
                     }
-                    this.fs.writeFile(this.sys.path + "\\resources\\app\\saveDatas.json", JSON.stringify(saveDatas), {
-                        'flag': 'a'
-                    }, function (err) {
+                    this.fs.writeFile(this.sys.path + "\\resources\\app\\saveDatas.json", JSON.stringify(saveDatas),
+                    // {
+                    //     'flag': 'a'
+                    // },
+                        function (err) {
                         if (err) {
                             throw err;
                         }
