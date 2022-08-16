@@ -1,16 +1,28 @@
 var Shell = new ActiveXObject("Shell.Application")
 var win = new Enumerator(Shell.Windows())
+var res = "";
+
+var Wrap = new ActiveXObject("DynamicWrapperX")
+Wrap.Register("USER32.DLL", "GetForegroundWindow", "f=s", "r=l")
+// WSH.Echo(Wrap.GetForegroundWindow())
 
 while (!win.atEnd()) {
-    var selected = new Enumerator(win.item().Document.SelectedItems())
-    while (!selected.atEnd()) {
-        WSH.Echo(string2CharCodeArray(selected.item().Path))
-        WSH.quit()
-        selected.moveNext()
+    if (Wrap.GetForegroundWindow() == win.item().HWND) {
+        var selected = new Enumerator(win.item().Document.SelectedItems())
+        while (!selected.atEnd()) {
+            WSH.Echo(
+                //selected.item().Path)
+                string2CharCodeArray(selected.item().Path))
+            WSH.quit()
+            selected.moveNext()
+        }
+        // WSH.Echo(win.item().HWND)
     }
     win.moveNext()
 }
-WSH.Echo("NNNNN");
+WSH.Echo(string2CharCodeArray("NNNNN"));
+// WSH.Echo(string2CharCodeArray(res));
+
 
 function string2CharCodeArray(str) {
     var arr = [];
