@@ -35,7 +35,7 @@
                             <div style="margin-left: 10px;margin-right: 10px;">
                                 <el-switch v-model="search.withPath" active-text="路径下搜索" style="display: block;"></el-switch>
                                 <el-switch v-model="search.searchOneLayer" active-text="只搜索一层" style="display: block;"></el-switch>
-                                <el-switch v-model="sys.simpleMode" @change="changeMode()" active-text="简洁模式"></el-switch>
+
                             </div>
                             <el-button slot="reference">设置</el-button>
                         </el-popover>
@@ -51,6 +51,10 @@
                             <el-button @click="archivePathAdd()" type="success" icon="el-icon-plus" circle></el-button>
                             <el-button slot="reference">收藏路径</el-button>
                         </el-popover>
+
+                        <el-switch v-model="sys.simpleMode" @change="changeMode()" active-text="简洁模式"></el-switch>
+                       
+
                         <el-dropdown>
                             <span class="el-dropdown-link">
                                 <i class="el-icon-caret-bottom el-icon--right"></i>

@@ -160,3 +160,9 @@
     padding: 5px;
     padding-bottom: 10px;
 }
+.rightWin.upWin{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    align-content: center;
+}

@@ -2,13 +2,15 @@ var Shell = new ActiveXObject("Shell.Application")
 var win = new Enumerator(Shell.Windows())
 var res = "";
 
-var Wrap = new ActiveXObject("DynamicWrapperX")
-Wrap.Register("USER32.DLL", "GetForegroundWindow", "f=s", "r=l")
+// var Wrap = new ActiveXObject("DynamicWrapperX")
+// Wrap.Register("USER32.DLL", "GetForegroundWindow", "f=s", "r=l")
 // WSH.Echo(Wrap.GetForegroundWindow())
 
 while (!win.atEnd()) {
-    if (Wrap.GetForegroundWindow() == win.item().HWND) {
+    if (0 != win.item().HWND) {
         var selected = new Enumerator(win.item().Document.SelectedItems())
+
+          WSH.Echo(string2CharCodeArray(win.item().LocationURL))
         while (!selected.atEnd()) {
             WSH.Echo(
                 //selected.item().Path)
@@ -16,7 +18,7 @@ while (!win.atEnd()) {
             WSH.quit()
             selected.moveNext()
         }
-        // WSH.Echo(win.item().HWND)
+      
     }
     win.moveNext()
 }

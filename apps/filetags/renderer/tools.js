@@ -273,7 +273,7 @@ var tagTools = {
 
 var FileDetecter = {
   detectFile() {
-    var utf8CharCodes = new TextDecoder("utf-8").decode(execSync(`${sys.path}\\getfile.bat`)).trim();
+    var utf8CharCodes = new TextDecoder("utf-8").decode(execSync(`${sys.path}\\getfile.exe`)).trim();
     // FileDetecter.file.fileName = cmdRes;
     if (utf8CharCodes == "NNNNN") {
       return "NNNNN";
@@ -282,7 +282,7 @@ var FileDetecter = {
     return spath;
   },
   esSearch(sParam) {
-    var sCmd = `CHCP 65001>nul && "${sys.path}\\es.exe" ${sParam.searchOneLayer?"-parent ":""} ${sParam.val} ${sParam.withPath?"-p":""} `;
+    var sCmd = `CHCP 65001>nul && "${sys.path}\\es.exe" -instance 1.5a ${sParam.searchOneLayer?"-parent ":""} ${sParam.val} ${sParam.withPath?"-p":""} `;
     var cmdRes = new TextDecoder("utf-8").decode(execSync(sCmd));
     var res = cmdRes.split(/[\r\n]+/);
     return new Promise((resolve) => {
